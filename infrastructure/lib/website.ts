@@ -1,6 +1,7 @@
 import { Duration, RemovalPolicy } from "aws-cdk-lib";
 import { Construct } from "constructs";
 import * as s3 from "aws-cdk-lib/aws-s3";
+import * as s3deploy from "aws-cdk-lib/aws-s3-deployment";
 import * as cloudfront from "aws-cdk-lib/aws-cloudfront";
 import * as cloudfront_origins from "aws-cdk-lib/aws-cloudfront-origins";
 import * as acm from "aws-cdk-lib/aws-certificatemanager";
@@ -10,6 +11,7 @@ import * as iam from "aws-cdk-lib/aws-iam";
 
 export interface WebsiteProps {
   domainName: string;
+  appPath: string;
 }
 
 export class Website extends Construct {
@@ -26,12 +28,15 @@ export class Website extends Construct {
   private hostedZone: route53.IHostedZone;
   private certificate: acm.DnsValidatedCertificate;
 
+  private appPath: string;
+
   constructor(scope: Construct, id: string, props: WebsiteProps) {
     super(scope, id);
 
     this.nakedDomainName = props.domainName;
     this.wwwDomainName = `www.${props.domainName}`;
     this.wildcardDomainName = `*.${props.domainName}`;
+    this.appPath = props.appPath;
 
     this.initialize();
   }
@@ -44,6 +49,7 @@ export class Website extends Construct {
     this.createOriginAccessIdentity();
     this.createCloudfrontDistributions();
     this.createAliasRecords();
+    this.createBucketDeployment();
   }
 
   private createHostedZone() {
@@ -180,6 +186,15 @@ export class Website extends Construct {
         new route53_targets.CloudFrontTarget(this.nakedDistribution)
       ),
       zone: this.hostedZone,
+    });
+  }
+
+  private createBucketDeployment() {
+    new s3deploy.BucketDeployment(this, "DeployWithInvalidation", {
+      sources: [s3deploy.Source.asset(this.appPath)],
+      destinationBucket: this.wwwDomainBucket,
+      distribution: this.wwwDistribution,
+      distributionPaths: ["/*"],
     });
   }
 }

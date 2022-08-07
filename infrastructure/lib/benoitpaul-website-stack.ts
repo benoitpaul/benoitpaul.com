@@ -12,6 +12,9 @@ export class BenoitPaulWebsiteStack extends Stack {
       console.log("BenoitPaulWebsiteStack for env", env);
     }
 
-    new Website(this, "BenoitPaulWebsite", { domainName: DOMAIN_NAME });
+    new Website(this, "BenoitPaulWebsite", {
+      domainName: DOMAIN_NAME,
+      appPath: "../website/out",
+    });
   }
 }

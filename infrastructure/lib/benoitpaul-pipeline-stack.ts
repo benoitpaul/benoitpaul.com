@@ -11,7 +11,7 @@ class BenoitPaulStage extends Stage {
     //   env: getEnvConfig("prod").env,
     // });
 
-    new BenoitPaulWebsiteStack(this, "BenoitPaulWebsiteProdStack");
+    new BenoitPaulWebsiteStack(this, "BenoitPaulWebsiteStack");
   }
 }
 
@@ -33,7 +33,10 @@ export class BenoitPaulPipelineStack extends Stack {
       synth: new pipelines.ShellStep("Synth", {
         input: source,
         commands: [
-          "cd infrastructure",
+          "cd website",
+          "npm ci",
+          "npm run build:export",
+          "cd ../infrastructure",
           "npm ci",
           "npm run build",
           "npx cdk synth",
