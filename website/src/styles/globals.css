@@ -1,3 +1,6 @@
+@import "open-props/style";
+@import "open-props/normalize";
+
 html,
 body {
   padding: 0;
@@ -23,4 +26,10 @@ a {
     color: white;
     background: black;
   }
+}
+
+main {
+  margin: auto;
+  padding: 1em;
+  max-width: 60ch;
 }

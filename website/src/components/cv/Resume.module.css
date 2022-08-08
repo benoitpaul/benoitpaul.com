@@ -1,0 +1,110 @@
+.resume {
+  display: grid;
+  gap: var(--size-5);
+}
+
+.resume .sr {
+  display: none;
+}
+
+.resume ul.nobullet {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+}
+
+.resume ul.nobullet > li {
+  padding: 0;
+}
+
+.resume h3 {
+  font-size: var(--font-size-2);
+}
+
+/* BASICS */
+
+.label {
+  font-size: var(--font-size-3);
+  text-transform: uppercase;
+  color: var(--blue-8);
+}
+
+/* CONTACT */
+
+.contact dt {
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.contact :where(dt:not(:first-of-type)) {
+  margin-block-start: var(--size-2);
+}
+
+/* WORK */
+
+.experience {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: var(--size-4);
+}
+
+.experience > *:not(.experience_position) {
+  margin-bottom: var(--size-2);
+}
+
+.experience_position {
+  /* font-size: var(--font-size-2); */
+  text-transform: uppercase;
+  margin-bottom: var(--size-0);
+}
+
+.experience_name {
+  font-size: var(--font-size-1);
+  font-weight: var(--font-weight-6);
+}
+
+.experience_summary,
+.experience_highlights {
+  font-size: var(--font-size-1);
+}
+
+.experience_summary {
+  font-style: italic;
+}
+
+ul.experience_tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--size-2);
+  margin-top: var(--size-2);
+  list-style-type: none;
+  padding: 0;
+}
+
+ul.experience_tags > li {
+  padding: var(--size-2) var(--size-3);
+  background: var(--blue-0);
+  border-radius: var(--radius-2);
+  font-size: var(--font-size-1);
+}
+
+/* EDUCATION */
+.education {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: var(--size-4);
+}
+
+.education > * {
+  margin-bottom: var(--size-1);
+}
+
+.education_area {
+  text-transform: uppercase;
+}
+
+.education_description {
+  font-size: var(--font-size-1);
+  /* color: #666; */
+  font-style: italic;
+}

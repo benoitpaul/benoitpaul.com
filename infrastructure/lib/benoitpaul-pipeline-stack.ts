@@ -7,10 +7,6 @@ class BenoitPaulStage extends Stage {
   constructor(scope: Construct, id: string, props?: StageProps) {
     super(scope, id, props);
 
-    // new BenoitPaulWebsiteStack(this, "BenoitPaulWebsiteProdStack", {
-    //   env: getEnvConfig("prod").env,
-    // });
-
     new BenoitPaulWebsiteStack(this, "BenoitPaulWebsiteStack");
   }
 }

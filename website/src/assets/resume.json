@@ -1,0 +1,324 @@
+{
+  "$schema": "https://raw.githubusercontent.com/jsonresume/resume-schema/v1.0.0/schema.json",
+  "basics": {
+    "name": "Benoit Paul",
+    "label": "Senior fullstack developer",
+    "image": "https://randomuser.me/api/portraits/men/32.jpg",
+    "email": "benoit.paul@gmail.com",
+    "phone": "(514) 445-3482",
+    "url": "http://www.benoitpaul.com",
+    "summary": "I'm a software developer with 15+ years’ experience in both web and desktop applications. I have a passion for improving other people’s lives, and early in my career I discovered that technology was one of the best ways to do that. Software development has given me the chance to work in different fields, as diverse as aerospace, finance, human resources and media.",
+    "location": {
+      "address": "216 rue de la Buse",
+      "postalCode": "J6V 0C3",
+      "city": "Terrebonne",
+      "countryCode": "CA",
+      "region": "Quebec"
+    },
+    "profiles": [
+      {
+        "network": "LinkedIn",
+        "username": "benoitpaul",
+        "url": "https://www.linkedin.com/in/benoitpaul/"
+      },
+      {
+        "network": "GitHub",
+        "username": "benoitpaul",
+        "url": "https://github.com/benoitpaul/"
+      }
+    ]
+  },
+  "work": [
+    {
+      "name": "Fairstone",
+      "location": "Montreal, QC",
+      "description": "Awesome compression company",
+      "position": "Frontend Developer",
+      "url": "https://www.fairstone.ca",
+      "startDate": "2021-11-15",
+      "endDate": "2014-12-01",
+      "summary": "Fairstone offers loans in Canada to people in the fair to good credit score range for debt consolidation, unexpected expenses and more.",
+      "highlights": [
+        "Build an algorithm for artist to detect if their music was violating copy right infringement laws",
+        "Successfully won Techcrunch Disrupt",
+        "Optimized an algorithm that holds the current world record for Weisman Scores"
+      ],
+      "tags": ["React", "TypeScript", "SCSS", "Node.js", "AWS"]
+    },
+    {
+      "name": "LogMeIn",
+      "location": "Montreal, QC",
+      "description": "Awesome compression company",
+      "position": "React Developer",
+      "url": "https://www.logmein.com",
+      "startDate": "2021-01-01",
+      "endDate": "2021-11-15",
+      "summary": "LogMeIn provides the most-comprehensive, secure, and flexible suite of products to help businesses embrace remote work, learning and customer engagement.",
+      "highlights": [
+        "Development of the agent experience in CCaaS (contact center as a service), with React, Redux-Toolkit, TypeScript and SCSS",
+        "Implementation of pixel perfect designs, in collaboration with the design team",
+        "Implementation of the BFF (backend for frontend) in Node.js and Nest.js.  This special service aggregates the various Java microservices of the organization into easy to consume REST endpoints",
+        "Introduced the team to react-testing-library, a lightweight testing library that encourages best practices",
+        "Accessibility champion in the team",
+        "CI with Github, Jenkins, Docker and Kubernetes"
+      ],
+      "tags": [
+        "React",
+        "Node.js",
+        "Nest.js",
+        "TypeScript",
+        "SCSS",
+        "Jest",
+        "Jenkins",
+        "GitHub",
+        "Docker",
+        "Kubernetes"
+      ]
+    },
+    {
+      "name": "Hydro Québec",
+      "location": "Montreal, QC",
+      "description": "Awesome compression company",
+      "position": "Senior Software Developer",
+      "url": "https://www.hydroquebec.com",
+      "startDate": "2018-09-01",
+      "endDate": "2020-12-31",
+      "summary": "Hydro-Québec is a public utility that manages the generation, transmission and distribution of electricity in the Canadian province of Quebec, as well as the export of power to portions of the Northeast United States.",
+      "highlights": [
+        "Development of the new Power outage web responsive and mobile  application (Front End: Angular, Back End: Java web services)",
+        "Development of the login portal of Customer Space (4.3 million clients), integrating with a Java and Forgerock back-end",
+        "Development of Simulation Tarifaire, an application to drive commercial client towards energy efficiency",
+        "Development of unit tests",
+        "Active participant in SCRUM methodology adoption (using the JIRA product suite)",
+        "CI with Jenkins and OpenShift"
+      ],
+      "tags": [
+        "Angular",
+        "Ionic",
+        "Jest",
+        "Forgerock",
+        "TypeScript",
+        "CSS",
+        "Jenkins",
+        "OpenShift"
+      ]
+    },
+    {
+      "name": "Marine Press of Canada",
+      "location": "Montreal, QC",
+      "description": "",
+      "position": "Senior Web Developer",
+      "url": "https://www.oneocean.com",
+      "startDate": "2017-11-01",
+      "endDate": "2018-08-01",
+      "summary": "OneOcean Group Ltd is the largest global supplier of voyage solutions for the maritime industry. Our solutions are used by over 15,000 vessels across the world to support and optimise navigation and compliance.",
+      "highlights": [
+        "Development of SeaOps, a maritime fleet management application",
+        "Improved the performance of the application, using RxJs and Angular best practices",
+        "REST API (.NET backend)"
+      ],
+      "tags": ["Angular", "RxJs", "C#", ".NET", "TypeScript", "SCSS"]
+    },
+    {
+      "name": "X2O Media",
+      "location": "Montreal, QC",
+      "description": "",
+      "position": "Application Specialist/Project Developer",
+      "url": "https://www.x2omedia.com",
+      "startDate": "2016-11-01",
+      "endDate": "2017-10-01",
+      "summary": "X2O Media provides visual communication solutions for the digital workplace and schools.",
+      "highlights": [
+        "Development of custom experiences for Verizon",
+        "Integration with commercial APIs (YouTube, Twilio, etc.)",
+        "Development of the .NET back-end"
+      ],
+      "tags": ["JavaScript", "React", "Redux", "C#", ".NET", "HTML5", "CSS"]
+    },
+    {
+      "name": "Peoplefluent",
+      "location": "Longueuil, QC",
+      "description": "",
+      "position": "Senior Software Developer",
+      "url": "https://www.peoplefluent.com",
+      "startDate": "2016-03-01",
+      "endDate": "2016-10-01",
+      "summary": "As a market leader in integrated talent management and learning solutions, PeopleFluent helps companies hire, develop, and advance a skilled and motivated workforce.",
+      "highlights": [
+        "Development of a learning management system",
+        "Advocate of the Scrum methodologies in team",
+        "Implemented Behavior Driven Development (BDD) practices, improved the application stability and team communication"
+      ],
+      "tags": ["C#", ".NET", "ASP.NET MVC", "Selenium", "Specflow", "Telerik"]
+    },
+    {
+      "name": "Société Générale",
+      "location": "Montreal, QC",
+      "description": "Investment banking company",
+      "position": "Senior Software Developer",
+      "url": "https://www.societegenerale.com/",
+      "startDate": "2013-03-01",
+      "endDate": "2016-03-01",
+      "summary": "Société Générale S.A., is a French multinational investment bank and financial services company headquartered in Paris, France.",
+      "highlights": [
+        "Fullstack DevOps developer on Merlin, a collateral management application",
+        "Redesign of the application from Windows Client to an AngularJs web application",
+        "Automation of end-to-end tests with Behavior Driven Development (BDD) and Test Driven Development (TDD)"
+      ],
+      "tags": ["C#", ".NET", "WPF", "Specflow", "Selenium"]
+    },
+    {
+      "name": "Presagis",
+      "location": "Montreal, QC",
+      "description": "",
+      "position": "ScrumMaster/Senior Software Developer",
+      "url": "https://www.presagis.com",
+      "startDate": "2009-03-01",
+      "endDate": "2013-10-01",
+      "summary": "Presagis delivers simulation and graphics software, and services to defense and aeronautic organizations worldwide. We provide end-users, system integrators, developers, and manufacturers with advanced tools and dedicated services to help them achieve rich, immersive virtual environments for training, as a test-bench, and designing the cockpits of tomorrow.",
+      "highlights": [
+        "Main developer of large and modular applications",
+        "Analysis and streamline of  existing customer workflows",
+        "Scrum Master for a remote group of 5 teams members"
+      ],
+      "tags": ["C#", ".NET", "WPF", "PRISM", "MVVM"]
+    },
+    {
+      "name": "BMO Financial Group",
+      "location": "Montreal, QC",
+      "description": "",
+      "position": "Software Developer",
+      "url": "https://www.bmo.com",
+      "startDate": "2009-10-01",
+      "endDate": "2009-01-01",
+      "summary": "BMO offers a wide range of personal banking services including mortgages, credit cards, loans and insurance.",
+      "highlights": [
+        "Development of a loan approval web application, interfacing with a legacy mainframe system."
+      ],
+      "tags": [
+        "C#",
+        "ASP.NET",
+        "ADO.NET",
+        ".NET",
+        "JavaScript",
+        "jQuery",
+        "CSS"
+      ]
+    },
+    {
+      "name": "CAE Inc.",
+      "location": "Montreal, QC",
+      "description": "",
+      "position": "Software Developer",
+      "url": "https://www.bmo.com",
+      "startDate": "2008-12-31",
+      "endDate": "2001-03-01",
+      "summary": "CAE Inc. is a Canadian manufacturer of simulation technologies, modelling technologies and training services to airlines, aircraft manufacturers, healthcare specialists, and defence customers.",
+      "highlights": ["Graphical User Interface development"],
+      "tags": ["C#", "WinForms", "C++", "MFC", ".NET"]
+    }
+  ],
+  "volunteer": [
+    {
+      "organization": "CoderDojo",
+      "position": "Teacher",
+      "url": "http://coderdojo.example.com/",
+      "startDate": "2012-01-01",
+      "endDate": "2013-01-01",
+      "summary": "Global movement of free coding clubs for young people.",
+      "highlights": ["Awarded 'Teacher of the Month'"]
+    }
+  ],
+  "education": [
+    {
+      "institution": "Université du Québec à Montréal",
+      "url": "https://uqam.ca",
+      "area": "Computer Science",
+      "studyType": "Bachelor",
+      "startDate": "1998",
+      "endDate": "2002",
+      "score": "4.0",
+      "courses": ["DB1101 - Basic SQL", "CS2011 - Java Introduction"]
+    },
+    {
+      "institution": "Université de Montréal",
+      "url": "https://www.umontreal.ca",
+      "area": "Nursing Science",
+      "studyType": "Bachelor",
+      "startDate": "1995",
+      "endDate": "1998",
+      "score": "4.0",
+      "courses": ["DB1101 - Basic SQL", "CS2011 - Java Introduction"]
+    }
+  ],
+  "awards": [
+    {
+      "title": "Digital Compression Pioneer Award",
+      "date": "2014-11-01",
+      "awarder": "Techcrunch",
+      "summary": "There is no spoon."
+    }
+  ],
+  "publications": [
+    {
+      "name": "Video compression for 3d media",
+      "publisher": "Hooli",
+      "releaseDate": "2014-10-01",
+      "url": "http://en.wikipedia.org/wiki/Silicon_Valley_(TV_series)",
+      "summary": "Innovative middle-out compression algorithm that changes the way we store data."
+    }
+  ],
+  "skills": [
+    {
+      "name": "Web Development",
+      "level": "Master",
+      "keywords": ["HTML", "CSS", "Javascript"]
+    },
+    {
+      "name": "Compression",
+      "level": "Master",
+      "keywords": ["Mpeg", "MP4", "GIF"]
+    }
+  ],
+  "languages": [
+    {
+      "language": "English",
+      "fluency": "Native speaker"
+    }
+  ],
+  "interests": [
+    {
+      "name": "Wildlife",
+      "keywords": ["Ferrets", "Unicorns"]
+    }
+  ],
+  "references": [
+    {
+      "name": "Erlich Bachman",
+      "reference": "It is my pleasure to recommend Richard, his performance working as a consultant for Main St. Company proved that he will be a valuable addition to any company."
+    }
+  ],
+  "projects": [
+    {
+      "name": "Miss Direction",
+      "description": "A mapping engine that misguides you",
+      "highlights": [
+        "Won award at AIHacks 2016",
+        "Built by all women team of newbie programmers",
+        "Using modern technologies such as GoogleMaps, Chrome Extension and Javascript"
+      ],
+      "keywords": ["GoogleMaps", "Chrome Extension", "Javascript"],
+      "startDate": "2016-08-24",
+      "endDate": "2016-08-24",
+      "url": "missdirection.example.com",
+      "roles": ["Team lead", "Designer"],
+      "entity": "Smoogle",
+      "type": "application"
+    }
+  ],
+  "meta": {
+    "canonical": "https://raw.githubusercontent.com/jsonresume/resume-schema/master/resume.json",
+    "version": "v1.0.0",
+    "lastModified": "2017-12-24T15:53:00"
+  }
+}

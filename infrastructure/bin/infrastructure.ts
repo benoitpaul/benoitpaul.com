@@ -13,7 +13,3 @@ new BenoitPaulPipelineStack(app, "BenoitPaulPipelineStack", {
   env: getEnvConfig("prod").env,
 });
 app.synth();
-
-// new BenoitPaulWebsiteStack(app, "BenoitPaulWebsiteProdStack", {
-//   env: getEnvConfig("prod").env,
-// });
