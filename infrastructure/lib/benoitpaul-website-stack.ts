@@ -14,6 +14,7 @@ export class BenoitPaulWebsiteStack extends Stack {
 
     new Website(this, "BenoitPaulWebsite", {
       domainName: DOMAIN_NAME,
+      privateBuckets: false,
       appPath: "../website/out",
     });
   }

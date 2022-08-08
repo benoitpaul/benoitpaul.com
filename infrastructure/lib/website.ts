@@ -12,9 +12,11 @@ import * as iam from "aws-cdk-lib/aws-iam";
 export interface WebsiteProps {
   domainName: string;
   appPath: string;
+  privateBuckets?: boolean;
 }
 
 export class Website extends Construct {
+  private privateBuckets: boolean;
   private wwwDomainName: string;
   private nakedDomainName: string;
   private wildcardDomainName: string;
@@ -33,6 +35,7 @@ export class Website extends Construct {
   constructor(scope: Construct, id: string, props: WebsiteProps) {
     super(scope, id);
 
+    this.privateBuckets = props.privateBuckets || false;
     this.nakedDomainName = props.domainName;
     this.wwwDomainName = `www.${props.domainName}`;
     this.wildcardDomainName = `*.${props.domainName}`;
@@ -46,7 +49,9 @@ export class Website extends Construct {
     this.createCertificate();
 
     this.createBuckets();
-    this.createOriginAccessIdentity();
+    if (this.privateBuckets) {
+      this.createOriginAccessIdentity();
+    }
     this.createCloudfrontDistributions();
     this.createAliasRecords();
     this.createBucketDeployment();
@@ -75,18 +80,35 @@ export class Website extends Construct {
   }
 
   private createBuckets() {
+    const wwwBucketProperties = this.privateBuckets
+      ? {
+          blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
+        }
+      : {
+          publicReadAccess: true,
+          websiteIndexDocument: "index.html",
+        };
+
     this.wwwDomainBucket = new s3.Bucket(this, "WwwDomainBucket", {
       bucketName: this.wwwDomainName,
-      blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
+      ...wwwBucketProperties,
 
       // destroy bucket
       removalPolicy: RemovalPolicy.DESTROY,
       autoDeleteObjects: true,
     });
 
+    const nakedBucketProperties = this.privateBuckets
+      ? {
+          blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
+        }
+      : {
+          publicReadAccess: true,
+        };
+
     this.nakedDomainBucket = new s3.Bucket(this, "NakedDomainBucket", {
       bucketName: this.nakedDomainName,
-      blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
+      ...nakedBucketProperties,
 
       // redirects to the www canonical website
       websiteRedirect: { hostName: this.wwwDomainName },
@@ -130,6 +152,12 @@ export class Website extends Construct {
     const bucket = www ? this.wwwDomainBucket : this.nakedDomainBucket;
     const defaultRootObject = www ? "index.html" : undefined;
 
+    const originProperties = this.privateBuckets
+      ? {
+          originAccessIdentity: this.oai,
+        }
+      : {};
+
     return new cloudfront.Distribution(this, distributionName, {
       certificate: this.certificate,
       defaultRootObject: defaultRootObject,
@@ -145,7 +173,7 @@ export class Website extends Construct {
       ],
       defaultBehavior: {
         origin: new cloudfront_origins.S3Origin(bucket, {
-          originAccessIdentity: this.oai,
+          ...originProperties,
         }),
         // origin: new cloudfront_origins.HttpOrigin(bucket.bucketWebsiteDomainName),
         compress: true,
