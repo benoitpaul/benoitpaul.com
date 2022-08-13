@@ -1,0 +1,6 @@
+.footer {
+  padding: var(--size-3);
+
+  font-size: var(--font-size-0);
+  text-align: center;
+}

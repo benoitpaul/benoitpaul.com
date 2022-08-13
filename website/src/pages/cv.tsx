@@ -1,9 +1,9 @@
-import Resume from "@components/cv/Resume";
+import Resume from "@components/Resume";
 import { NextPage } from "next";
 import Head from "next/head";
 import Image from "next/image";
 import resume from "@assets/resume.json";
-import { ResumeSchema } from "@components/cv/types";
+import { ResumeSchema } from "@components/Resume/types";
 
 import styles from "@styles/cv.module.css";
 

@@ -1,0 +1,22 @@
+.header {
+  display: flex;
+
+  width: 100%;
+  max-width: var(--max-width);
+  margin: 0 auto;
+
+  padding-top: var(--size-7);
+  padding-bottom: var(--size-9);
+}
+
+.header nav {
+  display: flex;
+  gap: var(--size-3);
+}
+
+.header nav a {
+  margin: 0;
+  padding: var(--size-2) var(--size-3);
+
+  border-radius: var(--radius-2);
+}
