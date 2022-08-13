@@ -1,7 +1,9 @@
 import Layout from "@components/Layout";
-import { CATEGORIES } from "@helpers/category.helper";
+import { CATEGORIES, getCategoryBySlug } from "@helpers/category.helper";
 import { getPosts, Post } from "@helpers/post.helper";
+import { CANONICAL_DOMAIN } from "@helpers/seo.helper";
 import { GetStaticPaths, GetStaticProps, NextPage } from "next";
+import Head from "next/head";
 import Link from "next/link";
 import { ParsedUrlQuery } from "querystring";
 import React from "react";
@@ -12,9 +14,17 @@ interface CategoryPageProps {
 }
 
 const CategoryPage: NextPage<CategoryPageProps> = ({ categorySlug, posts }) => {
+  const category = getCategoryBySlug(categorySlug);
+  const { name } = category;
+  const canonicalUrl = `${CANONICAL_DOMAIN}/blog/${categorySlug}/`;
   return (
     <Layout>
-      <h1>{categorySlug}</h1>
+      <Head>
+        <title>{name} articles | Benoit Paul</title>
+        <meta name="description" content={`${name} articles by Benoit Paul`} />
+        <link rel="canonical" href={canonicalUrl} />
+      </Head>
+      <h1>{name}</h1>
       <ul>
         {posts.map((post) => (
           <li key={post.slug}>

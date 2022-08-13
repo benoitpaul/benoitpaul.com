@@ -11,6 +11,8 @@ export interface PostMetadata {
   description: string;
   category: string;
   tags?: string[];
+  publishedDate?: string;
+  updatedDate?: string;
 }
 
 export interface Post {

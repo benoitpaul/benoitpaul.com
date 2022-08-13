@@ -1,7 +1,9 @@
 import BlogPost from "@components/BlogPost";
 import Layout from "@components/Layout";
 import { getPost, getPosts, Post } from "@helpers/post.helper";
+import { CANONICAL_DOMAIN } from "@helpers/seo.helper";
 import { GetStaticPaths, GetStaticProps, NextPage } from "next";
+import Head from "next/head";
 import { ParsedUrlQuery } from "querystring";
 import React from "react";
 
@@ -10,8 +12,14 @@ interface PostPageProps {
 }
 
 const PostPage: NextPage<PostPageProps> = ({ post }) => {
+  const canonicalUrl = `${CANONICAL_DOMAIN}/blog/${post.metadata.category}/${post.slug}/`;
   return (
     <Layout>
+      <Head>
+        <title>{post.metadata.title} | Benoit Paul</title>
+        <meta name="description" content={post.metadata.description} />
+        <link rel="canonical" href={canonicalUrl} />
+      </Head>
       <BlogPost post={post} />
     </Layout>
   );
