@@ -1,0 +1,11 @@
+.blogPostItem {
+  text-decoration: none;
+}
+
+.blogPostItem p {
+  color: var(--text-2);
+}
+
+.blogPostItem h4 {
+  font-weight: var(--font-weight-6);
+}

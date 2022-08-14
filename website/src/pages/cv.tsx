@@ -1,11 +1,9 @@
 import Resume from "@components/Resume";
 import { NextPage } from "next";
 import Head from "next/head";
-import Image from "next/image";
 import resume from "@assets/resume.json";
 import { ResumeSchema } from "@components/Resume/types";
-
-import styles from "@styles/cv.module.css";
+import Layout from "@components/Layout";
 
 interface CVProps {
   resume: ResumeSchema;
@@ -13,17 +11,15 @@ interface CVProps {
 
 const CV: NextPage<CVProps> = ({ resume }) => {
   return (
-    <div className={styles.container}>
+    <Layout>
       <Head>
         <title>CV | Benoit Paul</title>
         <meta name="description" content="Benoit Paul Resume" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <main>
-        <Resume resume={resume} />
-      </main>
-    </div>
+      <Resume resume={resume} />
+    </Layout>
   );
 };
 

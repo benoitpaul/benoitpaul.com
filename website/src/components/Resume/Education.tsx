@@ -1,7 +1,6 @@
-import React from "react";
 import { EducationSchema } from "./types";
 
-import styles from "./Resume.module.css";
+import styles from "./Education.module.css";
 
 interface EducationProps {
   education: EducationSchema[];
@@ -11,7 +10,7 @@ const Education = ({ education }: EducationProps) => {
   return (
     <section>
       <h2>Education</h2>
-      <ul className={styles.nobullet}>
+      <ul className="nobullet">
         {education.map((degree, index) => (
           <li key={index}>
             <section className={styles.education}>

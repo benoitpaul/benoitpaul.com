@@ -1,0 +1,8 @@
+.contact dt {
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.contact :where(dt:not(:first-of-type)) {
+  margin-block-start: var(--size-2);
+}

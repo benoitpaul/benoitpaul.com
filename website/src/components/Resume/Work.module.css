@@ -1,0 +1,42 @@
+.experience {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: var(--size-4);
+}
+
+.experience > *:not(.experience_position) {
+  margin-bottom: var(--size-2);
+}
+
+.experience_position {
+  text-transform: uppercase;
+  margin-bottom: var(--size-0);
+}
+
+.experience_name {
+  font-weight: var(--font-weight-6);
+}
+
+.experience_date {
+  font-size: var(--font-size-1);
+}
+
+.experience_summary {
+  font-style: italic;
+}
+
+ul.experience_tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--size-2);
+  margin-top: var(--size-2);
+  list-style-type: none;
+  padding: 0;
+}
+
+ul.experience_tags > li {
+  padding: var(--size-2) var(--size-3);
+  background: var(--brand-inverse);
+  border-radius: var(--radius-2);
+  font-size: var(--font-size-0);
+}

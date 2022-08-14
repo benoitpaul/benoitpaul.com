@@ -3,6 +3,29 @@
 
 :root {
   --max-width: 65ch;
+
+  --link-visited: var(--link);
+  --brand-light: var(--indigo-7);
+  --brand-dark: var(--indigo-3);
+
+  --brand-inverse-light: var(--indigo-1);
+  --brand-inverse-dark: var(--indigo-7);
+}
+
+:where(html) {
+  --brand: var(--brand-light);
+  --brand-inverse: var(--brand-inverse-light);
+
+  --text-2: var(--gray-7);
+}
+
+@media (prefers-color-scheme: dark) {
+  :where(html) {
+    --brand: var(--brand-dark);
+    --brand-inverse: var(--brand-inverse-dark);
+
+    --text-2: var(--gray-6);
+  }
 }
 
 html,
@@ -13,12 +36,12 @@ body {
     Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
 }
 
-a {
+/* a {
   color: inherit;
   text-decoration: none;
-}
+} */
 
-* {
+/* * {
   box-sizing: border-box;
 }
 
@@ -30,4 +53,22 @@ a {
     color: white;
     background: black;
   }
+} */
+
+.sr {
+  display: none;
+}
+
+ul.nobullet {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+}
+
+ul.nobullet > li {
+  padding: 0;
+}
+
+:where(a):where([href]):where(:visited) {
+  text-decoration-color: var(--link);
 }

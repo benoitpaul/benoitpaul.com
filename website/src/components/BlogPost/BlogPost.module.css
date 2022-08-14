@@ -1,4 +1,6 @@
 .blogPost {
   display: grid;
   gap: var(--size-4);
+
+  padding-bottom: var(--size-9);
 }

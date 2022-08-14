@@ -1,0 +1,17 @@
+.education {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: var(--size-4);
+}
+
+.education > * {
+  margin-bottom: var(--size-1);
+}
+
+.education_area {
+  text-transform: uppercase;
+}
+
+.education_description {
+  font-style: italic;
+}

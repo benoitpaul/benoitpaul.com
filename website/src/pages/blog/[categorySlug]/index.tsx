@@ -6,7 +6,6 @@ import { GetStaticPaths, GetStaticProps, NextPage } from "next";
 import Head from "next/head";
 import Link from "next/link";
 import { ParsedUrlQuery } from "querystring";
-import React from "react";
 
 interface CategoryPageProps {
   categorySlug: string;
@@ -20,7 +19,7 @@ const CategoryPage: NextPage<CategoryPageProps> = ({ categorySlug, posts }) => {
   return (
     <Layout>
       <Head>
-        <title>{name} articles | Benoit Paul</title>
+        <title>{`${name} articles | Benoit Paul`}</title>
         <meta name="description" content={`${name} articles by Benoit Paul`} />
         <link rel="canonical" href={canonicalUrl} />
       </Head>

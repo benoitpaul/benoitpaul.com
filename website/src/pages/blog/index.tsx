@@ -1,9 +1,11 @@
+import Categories from "@components/Categories";
+import LatestPosts from "@components/LatestPosts";
 import Layout from "@components/Layout";
 import { CATEGORIES, Category } from "@helpers/category.helper";
 import { getPosts, Post } from "@helpers/post.helper";
 import { GetStaticProps, NextPage } from "next";
-import Link from "next/link";
-import React from "react";
+
+import styles from "@styles/Blog.module.css";
 
 interface BlogPageProps {
   categories: Category[];
@@ -13,29 +15,11 @@ interface BlogPageProps {
 const BlogPage: NextPage<BlogPageProps> = ({ categories, latestPosts }) => {
   return (
     <Layout>
-      <h1>Blog</h1>
-      <section>
-        <h2>Latest posts</h2>
-        <ul>
-          {latestPosts.map((post) => (
-            <li key={post.slug}>
-              <Link href={`/blog/${post.metadata.category}`}>
-                {post.metadata.title}
-              </Link>
-            </li>
-          ))}
-        </ul>
-      </section>
-      <section>
-        <h2>Categories</h2>
-        <ul>
-          {categories.map((category) => (
-            <li key={category.slug}>
-              <Link href={`/blog/${category.slug}`}>{category.name}</Link>
-            </li>
-          ))}
-        </ul>
-      </section>
+      <div className={styles.blog}>
+        <h1>Blog</h1>
+        <LatestPosts latestPosts={latestPosts} />
+        <Categories categories={categories} />
+      </div>
     </Layout>
   );
 };

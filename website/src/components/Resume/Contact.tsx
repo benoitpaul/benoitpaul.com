@@ -1,7 +1,6 @@
-import React from "react";
 import { BasicsSchema } from "./types";
 
-import styles from "./Resume.module.css";
+import styles from "./Contact.module.css";
 
 interface ContactProps {
   basics: BasicsSchema;
@@ -11,7 +10,7 @@ const Contact = ({ basics }: ContactProps) => {
   const { location, phone, email, url } = basics;
   return (
     <section className={styles.contact}>
-      <h2 className={styles.sr}>Contact</h2>
+      <h2 className="sr">Contact</h2>
       <dl>
         <dt>address</dt>
         <dd>

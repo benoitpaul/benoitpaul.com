@@ -5,6 +5,6 @@ interface MenuItem {
 
 export const MENU: MenuItem[] = [
   { label: "Home", href: "/" },
-  { label: "Resume", href: "/cv/" },
   { label: "Blog", href: "/blog/" },
+  { label: "Resume", href: "/cv/" },
 ];

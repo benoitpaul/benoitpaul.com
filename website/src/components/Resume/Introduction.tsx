@@ -1,5 +1,3 @@
-import React from "react";
-
 interface IntroductionProps {
   summary: string;
 }

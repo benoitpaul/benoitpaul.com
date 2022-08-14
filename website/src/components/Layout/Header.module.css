@@ -11,12 +11,22 @@
 
 .header nav {
   display: flex;
-  gap: var(--size-3);
+  gap: var(--size-1);
 }
 
 .header nav a {
   margin: 0;
-  padding: var(--size-2) var(--size-3);
+  padding: var(--size-1) var(--size-3);
 
   border-radius: var(--radius-2);
+
+  text-decoration: none;
+}
+
+.header nav a:hover {
+  background-color: var(--surface-2);
+}
+
+.active {
+  font-weight: var(--font-weight-7);
 }

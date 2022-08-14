@@ -1,8 +1,6 @@
-import React from "react";
 import { WorkSchema } from "./types";
 
-import styles from "./Resume.module.css";
-import classNames from "classnames";
+import styles from "./Work.module.css";
 
 interface WorkProps {
   work: WorkSchema[];
@@ -12,7 +10,7 @@ const Work = ({ work }: WorkProps) => {
   return (
     <section>
       <h2>Experience</h2>
-      <ul className={styles.nobullet}>
+      <ul className="nobullet">
         {work.map((experience, index) => (
           <li key={index}>
             <section className={styles.experience}>
@@ -22,7 +20,7 @@ const Work = ({ work }: WorkProps) => {
               <span className={styles.experience_name}>
                 <a href={experience.url}>{experience.name}</a>
               </span>
-              <span className={styles.experience_description}>
+              <span className={styles.experience_date}>
                 {experience.startDate} - {experience.endDate}
               </span>
               <span className={styles.experience_summary}>

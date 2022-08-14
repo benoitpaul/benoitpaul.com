@@ -1,7 +1,6 @@
-import React from "react";
 import { BasicsSchema } from "./types";
 
-import styles from "./Resume.module.css";
+import styles from "./Basics.module.css";
 
 interface BasicsProps {
   basics: BasicsSchema;

@@ -1,4 +1,3 @@
-import React from "react";
 import Basics from "./Basics";
 import Contact from "./Contact";
 import Education from "./Education";
