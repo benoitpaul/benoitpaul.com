@@ -1,5 +1,5 @@
 import { MENU } from "@helpers/menu.helper";
-import Link from "next/link";
+
 import ActiveLink from "./ActiveLink";
 
 import styles from "./Header.module.css";

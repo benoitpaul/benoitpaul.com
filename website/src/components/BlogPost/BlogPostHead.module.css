@@ -1,0 +1,22 @@
+.blogPostHead {
+  display: flex;
+}
+
+.blogPostHead .leftColumn {
+  flex: 1;
+
+  display: flex;
+  flex-direction: column;
+}
+
+.blogPostHead .leftColumn div {
+  display: flex;
+  flex-direction: column;
+}
+
+@media (min-width: 769px) {
+  .blogPostHead .leftColumn div {
+    flex-direction: row;
+    column-gap: var(--size-3);
+  }
+}

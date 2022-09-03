@@ -1,9 +1,10 @@
-import Resume from "@components/Resume";
 import { NextPage } from "next";
 import Head from "next/head";
+
 import resume from "@assets/resume.json";
-import { ResumeSchema } from "@components/Resume/types";
 import Layout from "@components/Layout";
+import Resume from "@components/Resume";
+import { ResumeSchema } from "@components/Resume/types";
 
 interface CVProps {
   resume: ResumeSchema;

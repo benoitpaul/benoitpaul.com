@@ -2,11 +2,13 @@ import { Stack, StackProps, Stage, StageProps } from "aws-cdk-lib";
 import { Construct } from "constructs";
 import * as pipelines from "aws-cdk-lib/pipelines";
 import { BenoitPaulWebsiteStack } from "./benoitpaul-website-stack";
+import { BenoitPaulStatisticsStack } from "./benoitpaul-statistics-stack";
 
 class BenoitPaulStage extends Stage {
   constructor(scope: Construct, id: string, props?: StageProps) {
     super(scope, id, props);
 
+    new BenoitPaulStatisticsStack(this, "BenoitPaulStatisticsStack");
     new BenoitPaulWebsiteStack(this, "BenoitPaulWebsiteStack");
   }
 }

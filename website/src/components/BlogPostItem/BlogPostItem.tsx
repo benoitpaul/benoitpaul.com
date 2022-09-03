@@ -1,6 +1,7 @@
+import Link from "next/link";
+
 import { Post } from "@helpers/post.helper";
 import { getPostUrl } from "@helpers/url.helper";
-import Link from "next/link";
 
 import styles from "./BlogPostItem.module.css";
 
@@ -13,8 +14,8 @@ const BlogPostItem = ({ post }: BlogPostItemProps) => {
   return (
     <Link href={postUrl}>
       <a className={styles.blogPostItem}>
-        <h4>{post.metadata.title}</h4>
-        <p>{post.metadata.description}</p>
+        <h4>{post.title}</h4>
+        <p>{post.description}</p>
       </a>
     </Link>
   );

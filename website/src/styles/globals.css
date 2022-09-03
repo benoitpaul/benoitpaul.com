@@ -72,3 +72,41 @@ ul.nobullet > li {
 :where(a):where([href]):where(:visited) {
   text-decoration-color: var(--link);
 }
+
+:where(h1, h2, h3, h4, h5, h6) {
+  font-weight: var(--font-weight-7);
+}
+
+:where(h1) {
+  font-size: var(--font-size-6);
+}
+
+:where(h2) {
+  font-size: var(--font-size-5);
+}
+
+:where(h3) {
+  font-size: var(--font-size-4);
+}
+
+:where(h4) {
+  font-size: var(--font-size-3);
+}
+
+@media screen and (min-width: 48em) {
+  :where(h1) {
+    font-size: var(--font-size-7);
+  }
+
+  :where(h2) {
+    font-size: var(--font-size-6);
+  }
+
+  :where(h3) {
+    font-size: var(--font-size-5);
+  }
+
+  :where(h4) {
+    font-size: var(--font-size-4);
+  }
+}

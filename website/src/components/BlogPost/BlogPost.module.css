@@ -4,3 +4,39 @@
 
   padding-bottom: var(--size-9);
 }
+
+.blogPost header {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: var(--size-3);
+}
+
+.blogPost header h1 {
+  margin-bottom: var(--size-3);
+}
+
+.image {
+  display: flex;
+  justify-content: center;
+  margin: var;
+}
+
+.blogPost table {
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+
+.blogPost table tr:nth-child(2n) {
+  background-color: rgba(var(--gray-3), 0.2);
+}
+
+.blogPost table th,
+.blogPost table td {
+  padding: var(--size-2) var(--size-3);
+  border: solid 1px var(--gray-3);
+}
+
+.blogPost ul,
+.blogPost ol {
+  padding-inline-start: var(--size-3);
+}

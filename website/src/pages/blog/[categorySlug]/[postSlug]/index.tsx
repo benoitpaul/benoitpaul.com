@@ -1,23 +1,30 @@
+import { ParsedUrlQuery } from "querystring";
+
+import { GetStaticPaths, GetStaticProps, NextPage } from "next";
+import Head from "next/head";
+
 import BlogPost from "@components/BlogPost";
 import Layout from "@components/Layout";
 import { getPost, getPosts, Post } from "@helpers/post.helper";
 import { CANONICAL_DOMAIN } from "@helpers/seo.helper";
-import { GetStaticPaths, GetStaticProps, NextPage } from "next";
-import Head from "next/head";
-import { ParsedUrlQuery } from "querystring";
 
 interface PostPageProps {
   post: Post;
 }
 
 const PostPage: NextPage<PostPageProps> = ({ post }) => {
-  const canonicalUrl = `${CANONICAL_DOMAIN}/blog/${post.metadata.category}/${post.slug}/`;
+  const canonicalUrl = `${CANONICAL_DOMAIN}/blog/${post.category}/${post.slug}/`;
   return (
     <Layout>
       <Head>
-        <title>{`${post.metadata.title} | Benoit Paul`}</title>
-        <meta name="description" content={post.metadata.description} />
+        <title>{`${post.title} | Benoit Paul`}</title>
+        <meta name="description" content={post.description} />
+        <meta name="author" content="Benoit Paul" />.
         <link rel="canonical" href={canonicalUrl} />
+        <link
+          rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/prism-themes/1.9.0/prism-one-dark.min.css"
+        ></link>
       </Head>
       <BlogPost post={post} />
     </Layout>
@@ -34,7 +41,7 @@ export const getStaticPaths: GetStaticPaths<Params> = async () => {
   const posts = await getPosts();
   const paths = posts.map((post) => ({
     params: {
-      categorySlug: post.metadata.category,
+      categorySlug: post.category,
       postSlug: post.slug,
     },
   }));

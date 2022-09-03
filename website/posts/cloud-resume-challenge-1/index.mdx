@@ -8,8 +8,6 @@ tags:
   - aws
 ---
 
-# Cloud resume challenge - part 1
-
 The [cloud resume challenge](https://cloudresumechallenge.dev/) is a great option to start learning the cloud.
 
 I want to learn AWS, so I thought I'd give it a try and the experience has been a blast! This is the first article of a series that will delve into my learnings during this challenge.
@@ -66,7 +64,7 @@ Next step, let's do it with code!
 
 The simplest choice for me to create an infrastructure as code is to use the CDK. As a frontend developer I'm familiar with TypeScript, and it's a first class language for the CDK.
 
-I created my own construct to abstract all the details. You can find it [here](https://github.com/benoitpaul/benoitpaul.com/blob/main/infrastructure/lib/website.ts).
+I created my own [website CDK construct](https://github.com/benoitpaul/benoitpaul.com/blob/main/infrastructure/lib/website.ts) to abstract all the details.
 
 There are a few things I learned along the way.
 
@@ -108,6 +106,10 @@ Then I set a cloudfront distribution for each bucket. Since the buckets are defi
 
 Lastly, the AA and AAAA records are created for each cloudfront distribution
 
+Here is a diagram of the website architecture:
+
+![Diagram of a website architecture in AWS](/images/cloud-resume-challenge-1-website.png)
+
 ## Pipeline as Code
 
 The pipeline is gonna be super simple. It will be will triggered when there is a code change in the `main` branch.
@@ -140,4 +142,4 @@ The last step is to deploy to production. I added a stage to the pipeline to dep
 
 At the end of this chunk of the challenge, I have a complete website hosted on AWS, available with my domain name.
 
-You can check out the resume itself [here](https://www.benoitpaul.com/cv/).
+The [final resume](https://www.benoitpaul.com/cv/) is online!

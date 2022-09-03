@@ -1,4 +1,5 @@
-import { BsLinkedin, BsGithub } from "react-icons/bs";
+import { BsGithub, BsLinkedin } from "react-icons/bs";
+
 import { ProfileSchema } from "./types";
 
 interface ProfilesProps {

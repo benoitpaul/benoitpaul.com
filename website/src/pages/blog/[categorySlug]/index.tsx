@@ -1,11 +1,13 @@
-import Layout from "@components/Layout";
-import { CATEGORIES, getCategoryBySlug } from "@helpers/category.helper";
-import { getPosts, Post } from "@helpers/post.helper";
-import { CANONICAL_DOMAIN } from "@helpers/seo.helper";
+import { ParsedUrlQuery } from "querystring";
+
 import { GetStaticPaths, GetStaticProps, NextPage } from "next";
 import Head from "next/head";
-import Link from "next/link";
-import { ParsedUrlQuery } from "querystring";
+
+import BlogPostList from "@components/BlogPostList";
+import Layout from "@components/Layout";
+import { CATEGORIES, getCategoryName } from "@helpers/category.helper";
+import { getPosts, Post } from "@helpers/post.helper";
+import { CANONICAL_DOMAIN } from "@helpers/seo.helper";
 
 interface CategoryPageProps {
   categorySlug: string;
@@ -13,8 +15,7 @@ interface CategoryPageProps {
 }
 
 const CategoryPage: NextPage<CategoryPageProps> = ({ categorySlug, posts }) => {
-  const category = getCategoryBySlug(categorySlug);
-  const { name } = category;
+  const name = getCategoryName(categorySlug);
   const canonicalUrl = `${CANONICAL_DOMAIN}/blog/${categorySlug}/`;
   return (
     <Layout>
@@ -24,15 +25,7 @@ const CategoryPage: NextPage<CategoryPageProps> = ({ categorySlug, posts }) => {
         <link rel="canonical" href={canonicalUrl} />
       </Head>
       <h1>{name}</h1>
-      <ul>
-        {posts.map((post) => (
-          <li key={post.slug}>
-            <Link href={`/blog/${categorySlug}/${post.slug}`}>
-              {post.metadata.title}
-            </Link>
-          </li>
-        ))}
-      </ul>
+      <BlogPostList posts={posts} />
     </Layout>
   );
 };

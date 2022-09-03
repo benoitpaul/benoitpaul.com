@@ -1,5 +1,6 @@
-import { Category } from "@helpers/category.helper";
 import Link from "next/link";
+
+import { Category } from "@helpers/category.helper";
 
 interface CategoriesProps {
   categories: Category[];

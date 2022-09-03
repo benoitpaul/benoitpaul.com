@@ -1,0 +1,10 @@
+.blogPostList {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+}
+
+.blogPostList > li {
+  padding: 0;
+  max-inline-size: unset;
+}

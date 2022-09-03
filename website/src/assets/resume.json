@@ -39,9 +39,8 @@
       "endDate": "2014-12-01",
       "summary": "Fairstone offers loans in Canada to people in the fair to good credit score range for debt consolidation, unexpected expenses and more.",
       "highlights": [
-        "Build an algorithm for artist to detect if their music was violating copy right infringement laws",
-        "Successfully won Techcrunch Disrupt",
-        "Optimized an algorithm that holds the current world record for Weisman Scores"
+        "Implementation of design system",
+        "Infrastructure as Code using the AWS CDK"
       ],
       "tags": ["React", "TypeScript", "SCSS", "Node.js", "AWS"]
     },

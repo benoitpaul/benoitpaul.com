@@ -1,6 +1,6 @@
-import { useRouter } from "next/router";
+import React, { Children, ReactElement, useEffect, useState } from "react";
 import Link, { LinkProps } from "next/link";
-import React, { useState, useEffect, ReactElement, Children } from "react";
+import { useRouter } from "next/router";
 
 type ActiveLinkProps = LinkProps & {
   children: ReactElement;
