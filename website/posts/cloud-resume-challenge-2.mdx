@@ -143,7 +143,7 @@ I want to support only two origins for my api: the production domain and the loc
 In order to do so, I created this helper function:
 
 ```ts
-const allowedOrigins = ["http://www.benoitpaul.com", "http://localhost:3000"];
+const allowedOrigins = ["https://www.benoitpaul.com", "http://localhost:3000"];
 
 export const getHeaders = (event: APIGatewayProxyEvent) => {
   const origin = event.headers.Origin || event.headers.origin;
