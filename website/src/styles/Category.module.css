@@ -1,0 +1,4 @@
+.category {
+  display: grid;
+  gap: var(--size-4);
+}

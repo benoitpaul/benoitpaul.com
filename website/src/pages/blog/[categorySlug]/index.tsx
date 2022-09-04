@@ -9,6 +9,8 @@ import { CATEGORIES, getCategoryName } from "@helpers/category.helper";
 import { getPosts, Post } from "@helpers/post.helper";
 import { CANONICAL_DOMAIN } from "@helpers/seo.helper";
 
+import styles from "@styles/Category.module.css";
+
 interface CategoryPageProps {
   categorySlug: string;
   posts: Post[];
@@ -24,8 +26,10 @@ const CategoryPage: NextPage<CategoryPageProps> = ({ categorySlug, posts }) => {
         <meta name="description" content={`${name} articles by Benoit Paul`} />
         <link rel="canonical" href={canonicalUrl} />
       </Head>
-      <h1>{name}</h1>
-      <BlogPostList posts={posts} />
+      <div className={styles.category}>
+        <h1>{name}</h1>
+        <BlogPostList posts={posts} />
+      </div>
     </Layout>
   );
 };

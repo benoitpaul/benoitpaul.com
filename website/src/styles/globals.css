@@ -79,10 +79,12 @@ ul.nobullet > li {
 
 :where(h1) {
   font-size: var(--font-size-6);
+  margin-bottom: var(--size-3);
 }
 
 :where(h2) {
   font-size: var(--font-size-5);
+  margin-bottom: var(--size-2);
 }
 
 :where(h3) {

@@ -11,8 +11,11 @@ import remarkGfm from "remark-gfm";
 
 import { getCategoryName } from "./category.helper";
 
+const LATEST_POSTS_COUNT = 3;
+
 interface getPostsParams {
   categorySlug?: string;
+  latest?: boolean;
 }
 
 export interface PostFrontmatter {
@@ -20,7 +23,7 @@ export interface PostFrontmatter {
   description: string;
   category: string;
   tags?: string[];
-  publishedDate?: string;
+  publishedDate: string;
   updatedDate?: string;
 }
 
@@ -33,43 +36,39 @@ export interface Post extends PostFrontmatter {
 }
 
 export const getPosts = async (params?: getPostsParams): Promise<Post[]> => {
-  const folders = fs.readdirSync("posts");
+  const files = fs.readdirSync("posts");
   const allPosts = await Promise.all(
-    folders.map(async (folderName) => {
-      const slug = folderName;
-      const source = fs.readFileSync(`posts/${folderName}/index.mdx`, "utf-8");
-      const { data, content } = matter(source);
-      const mdxSource = await serialize(content);
-
-      return {
-        slug,
-        ...(data as PostFrontmatter),
-        categoryName: getCategoryName((data as PostFrontmatter).category),
-        readingTimeText: readingTime(content).text,
-        readingTimeMinutes: readingTime(content).minutes,
-        mdxContent: mdxSource,
-      };
+    files.map(async (filename) => {
+      const slug = filename.replace(".mdx", "");
+      return getPost(slug);
     })
   );
 
-  const posts = allPosts.filter((post) => {
+  const postsSortedByDate = allPosts.sort(comparePostsByDate);
+
+  const postsFilteredByCategory = postsSortedByDate.filter((post) => {
     if (!params || !params.categorySlug) {
       return true;
     }
     return post.category === params.categorySlug;
   });
 
-  return posts;
+  const latestPosts = params?.latest
+    ? postsFilteredByCategory.slice(
+        0,
+        Math.min(LATEST_POSTS_COUNT, postsFilteredByCategory.length)
+      )
+    : postsFilteredByCategory;
+
+  return latestPosts;
 };
 
 export const getPost = async (postSlug: string): Promise<Post> => {
-  const source = fs.readFileSync(`posts/${postSlug}/index.mdx`, "utf-8");
+  const source = fs.readFileSync(`posts/${postSlug}.mdx`, "utf-8");
   const { data, content } = matter(source);
   const mdxSource = await serialize(content, {
     mdxOptions: {
       remarkPlugins: [remarkGfm],
-      // use the image size plugin, you can also specify which folder to load images from
-      // in my case images are in /public/images/, so I just prepend 'public'
       rehypePlugins: [
         //@ts-ignore
         [imageSize, { dir: "public" }],
@@ -89,4 +88,14 @@ export const getPost = async (postSlug: string): Promise<Post> => {
     readingTimeMinutes: readingTime(content).minutes,
     mdxContent: mdxSource,
   };
+};
+
+const comparePostsByDate = (a: Post, b: Post) => {
+  if (a.publishedDate > b.publishedDate) {
+    return -1;
+  }
+  if (a.publishedDate < b.publishedDate) {
+    return 1;
+  }
+  return 0;
 };

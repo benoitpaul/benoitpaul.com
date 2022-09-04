@@ -5,8 +5,7 @@
   max-width: var(--max-width);
   margin: 0 auto;
 
-  padding-top: var(--size-7);
-  padding-bottom: var(--size-9);
+  padding: var(--size-3);
 }
 
 .header nav {

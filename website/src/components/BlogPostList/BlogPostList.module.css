@@ -1,4 +1,8 @@
 .blogPostList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--size-7);
+
   list-style-type: none;
   margin: 0;
   padding: 0;

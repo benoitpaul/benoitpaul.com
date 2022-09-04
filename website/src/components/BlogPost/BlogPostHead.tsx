@@ -23,8 +23,8 @@ const BlogPostHead = ({ post, hits }: BlogPostHeadProps) => {
           </a>
         </Link>
         <div>
-          <time dateTime={post.publishedDate!}>
-            {format(parseISO(post.publishedDate!), "MMMM dd, yyyy")}
+          <time dateTime={post.publishedDate}>
+            {format(parseISO(post.publishedDate), "MMMM dd, yyyy")}
           </time>
           <time dateTime={readingTimeIso8601}>{post.readingTimeText}</time>
         </div>

@@ -1,6 +1,8 @@
-import { BsGithub, BsLinkedin } from "react-icons/bs";
+import { RiGithubLine, RiLinkedinBoxLine } from "react-icons/ri";
 
 import { ProfileSchema } from "./types";
+
+import styles from "./Profiles.module.css";
 
 interface ProfilesProps {
   profiles: ProfileSchema[];
@@ -8,16 +10,16 @@ interface ProfilesProps {
 
 const Profiles = ({ profiles }: ProfilesProps) => {
   return (
-    <section>
+    <section className={styles.profiles}>
       <h2 className="sr">Profiles</h2>
       <dl>
         {profiles.map((profile, index) => (
           <div key={index}>
             <dt>
               {profile.network?.toLowerCase() === "linkedin" ? (
-                <BsLinkedin title={profile.network} />
+                <RiLinkedinBoxLine title={profile.network} />
               ) : (
-                <BsGithub title={profile.network} />
+                <RiGithubLine title={profile.network} />
               )}
               {/* <Icon 
                     name={`carbon:logo-${profile.network.toLowerCase()}`}
