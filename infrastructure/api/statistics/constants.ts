@@ -10,7 +10,7 @@ export const getSlugPathParameter = (event: APIGatewayProxyEvent) => {
   return slug;
 };
 
-const allowedOrigins = ["http://www.benoitpaul.com", "http://localhost:3000"];
+const allowedOrigins = ["https://www.benoitpaul.com", "http://localhost:3000"];
 
 export const getHeaders = (event: APIGatewayProxyEvent) => {
   const origin = event.headers.Origin || event.headers.origin;
