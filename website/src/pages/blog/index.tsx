@@ -6,6 +6,7 @@ import LatestPosts from "@components/LatestPosts";
 import Layout from "@components/Layout";
 import { CATEGORIES, Category } from "@helpers/category.helper";
 import { getPosts, Post } from "@helpers/post.helper";
+import { CANONICAL_DOMAIN } from "@helpers/seo.helper";
 
 import styles from "@styles/Blog.module.css";
 
@@ -15,11 +16,13 @@ interface BlogPageProps {
 }
 
 const BlogPage: NextPage<BlogPageProps> = ({ categories, latestPosts }) => {
+  const canonicalUrl = `${CANONICAL_DOMAIN}/blog/`;
   return (
     <Layout>
       <Head>
         <title>Blog | Benoit Paul</title>
         <meta name="description" content={`Articles by Benoit Paul`} />
+        <link rel="canonical" href={canonicalUrl} />
       </Head>
       <div className={styles.blog}>
         <h1>Blog</h1>

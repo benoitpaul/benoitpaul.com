@@ -9,17 +9,17 @@ const Footer = () => {
       <div className={styles.socialIcons}>
         <Link href="https://github.com/benoitpaul">
           <a>
-            <RiGithubLine />
+            <RiGithubLine title="Benoit Paul's Github" />
           </a>
         </Link>
         <Link href="https://www.linkedin.com/in/benoitpaul/">
           <a>
-            <RiLinkedinBoxLine />
+            <RiLinkedinBoxLine title="Benoit Paul's LinkedIn" />
           </a>
         </Link>
         <Link href="https://twitter.com/benoitpaul">
           <a>
-            <RiTwitterLine />
+            <RiTwitterLine title="Benoit Paul's Twitter" />
           </a>
         </Link>
       </div>

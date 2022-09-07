@@ -21,10 +21,6 @@ const PostPage: NextPage<PostPageProps> = ({ post }) => {
         <meta name="description" content={post.description} />
         <meta name="author" content="Benoit Paul" />.
         <link rel="canonical" href={canonicalUrl} />
-        <link
-          rel="stylesheet"
-          href="https://cdnjs.cloudflare.com/ajax/libs/prism-themes/1.9.0/prism-one-dark.min.css"
-        ></link>
       </Head>
       <BlogPost post={post} />
     </Layout>

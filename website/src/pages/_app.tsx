@@ -4,6 +4,7 @@ import type { AppProps } from "next/app";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 import "../styles/globals.css";
+import "../styles/prism-night-owl.css";
 
 function MyApp({ Component, pageProps }: AppProps) {
   const [queryClient] = useState(() => new QueryClient());
