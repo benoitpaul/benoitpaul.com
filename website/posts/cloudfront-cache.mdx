@@ -1,0 +1,127 @@
+---
+title: Cloudfront cache policy
+description: "In this tutorial, learn how Cloudfront manages cache policy.  Cloudfront provides a cache policy via the behaviors, but can provide a custom cache policy per S3 object "
+category: aws
+publishedDate: "2022-10-29"
+tags:
+  - aws
+  - cloudfront
+  - s3
+---
+
+[Cloudfront](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/Introduction.html) is a DNS provided by AWS that can speed up the delivery of content to your users.
+
+This performance is achieved becaused Cloudfront caches content at [edge locations](https://aws.amazon.com/cloudfront/features/?whats-new-cloudfront.sort-by=item.additionalFields.postDateTime&whats-new-cloudfront.sort-order=desc).
+
+This article discusses how Cloudfront manages its cache policy and TTL.
+
+## Cloudfront architecture
+
+Cloudfront delivers content from an [origin](https://docs.aws.amazon.com/cloudfront/latest/APIReference/API_Origin.html) (such as an S3 bucket or a website).
+
+When a request is made to Cloudfront for content:
+
+1. If the content is accessed for the first time, this is a _cache miss_: the content is not cached by Cloudfront yet. Cloudfront will fetch the content from the origin.
+2. The content is cached by Cloudfront at the edge location.
+3. The content is returned to the client.
+4. Subsequent accesses to the content via Cloudfront will be returned by its cache. This is a _cache hit_: Cloudfront will not request the content from the origin.
+
+### Cache expiration
+
+Once the content is cache by Cloudfront, what the it is changed _at the origin_? Won't Cloudfront will continue to serve the out-of-date (cached) content?
+
+Well, yes it will... until the cache expires.
+
+The cache policy expiration is set at the [behavior](https://docs.aws.amazon.com/cloudfront/latest/APIReference/API_CacheBehavior.html) level. This is the **default TTL** setting. By default it is set to 86,400 seconds (24 hours).
+
+This means that once the content is cached, it will be _stale_ after 24 hours.
+
+When the content is requested again by the client, Cloudfront with query the origin for the content.
+
+- If the content has not changed at the origin, the origin will return a `304 Not Modified` response to Cloudfront
+- If the content is changed at the origin, the origin will return a `200 OK` response to Cloudfront, along with the latest version of the content.
+
+## Different cache controls per content
+
+What if you want to use the default cache TTL for most the content but have a different cache TTL for a specific file?
+
+If the origin is an S3 bucket, you can set the `Cache-Control` metadata with a `max-age` value in seconds.
+
+### Example with a CDK project
+
+Here is an example to setup this infrastructure in CDK:
+
+```ts
+// create the bucket
+const bucket = new s3.Bucket(this, "Bucket", {
+  autoDeleteObjects: true,
+  removalPolicy: cdk.RemovalPolicy.DESTROY,
+});
+
+// add file to bucket WITHOUT custom cache policy
+new s3deploy.BucketDeployment(this, "DefaultCacheBucketDeployment", {
+  sources: [
+    s3deploy.Source.asset("./assets", {
+      exclude: ["*", "!default-cache-image.jpg"],
+    }),
+  ],
+  destinationBucket: bucket,
+});
+
+// add file to bucket WITH custom cache policy of 60 seconds
+new s3deploy.BucketDeployment(this, "CustomCacheBucketDeployment", {
+  sources: [
+    s3deploy.Source.asset("./assets", {
+      exclude: ["*", "!custom-cache-image.jpg"],
+    }),
+  ],
+  cacheControl: [s3deploy.CacheControl.maxAge(cdk.Duration.minutes(1))],
+  destinationBucket: bucket,
+});
+
+// create cloudfront distribution
+new cloudfront.Distribution(this, "CloudfrontDistribution", {
+  defaultBehavior: {
+    origin: new origin.S3Origin(bucket),
+  },
+});
+```
+
+In this example, a bucket is created and 2 objects are added:
+
+- default-cache-image.jpg (default cache TTL provided by the Cloudfront behavior)
+- custom-cache-image-jpg (custom Cache-Control with max-age to 60 seconds)
+
+This is the code that sets the `Cache-Control` setting:
+
+```ts
+cacheControl: [s3deploy.CacheControl.maxAge(cdk.Duration.minutes(1))];
+```
+
+<img
+  src="https://github.com/benoitpaul/aws-labs/raw/main/aws-cloudfront-cache/Architecture.png"
+  alt="architecture"
+  width="500"
+/>
+
+#### Testing Cloudfront from the browser
+
+You can inspect the hit cache or miss cache from Cloudfront with the **x-cache** response header.
+
+When requesting default-cache-image.jpg from the browser, I got the following results:
+
+1. First request to the file, the x-cache is `Miss from Cloudfront` (file was not in the cache)
+2. Second request to the file, the x-cache is `Hit from Cloudfront` (file is in the cache)
+3. Third request to the file (after 60 seconds), the x-cache is `Hit from Cloudfront` (file is still in the cache)
+
+When requesting custom-cache-image.jpg from the browser, I got the following results:
+
+1. First request to the file, the x-cache is `Miss from Cloudfront` (file was not in the cache)
+2. Second request to the file, the x-cache is `Hit from Cloudfront` (file is in the cache)
+3. Third request to the file (after 60 seconds), the x-cache is `RefreshHit from Cloudfront`
+
+Notice how after 60 seconds the the x-cache is `RefreshHit from Cloudfront` for custom-cache-image.jpg (vs `Hit from Cloudfront` for default-cache-image.jpg).
+
+This means that the cached file was stale. Cloudfront then requested the file from the origin (S3) and got a `304 Not Modified` response (since the file was not modified in the bucket).
+
+As usual, the [github repository](https://github.com/benoitpaul/aws-labs/tree/main/aws-cloudfront-cache) for this example is available.
