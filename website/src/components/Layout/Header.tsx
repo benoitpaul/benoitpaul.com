@@ -14,7 +14,7 @@ const Header = () => {
             href={menuItem.href}
             activeClassName={styles.active}
           >
-            <a>{menuItem.label}</a>
+            <>{menuItem.label}</>
           </ActiveLink>
         ))}
       </nav>

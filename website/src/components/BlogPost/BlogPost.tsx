@@ -43,9 +43,7 @@ const BlogPost = ({ post }: BlogPostProps) => {
   return (
     <article className={styles.blogPost}>
       <header>
-        <Link href={`/blog/${post.category}`}>
-          <a>{post.categoryName}</a>
-        </Link>
+        <Link href={`/blog/${post.category}`}>{post.categoryName}</Link>
         <h1>{post.title}</h1>
         <BlogPostHead post={post} hits={statistics?.hits} />
       </header>

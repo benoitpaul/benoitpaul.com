@@ -17,10 +17,8 @@ const BlogPostHead = ({ post, hits }: BlogPostHeadProps) => {
   return (
     <div className={styles.blogPostHead}>
       <div className={styles.leftColumn}>
-        <Link href="/about">
-          <a rel="author" title="Go to author page">
-            Benoit Paul
-          </a>
+        <Link href="/about" rel="author" title="Go to author page">
+          Benoit Paul
         </Link>
         <div>
           <time dateTime={post.publishedDate}>
