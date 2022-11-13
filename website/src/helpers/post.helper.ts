@@ -7,8 +7,8 @@ import rehypeAutolinkHeadings from "rehype-autolink-headings";
 import imageSize from "rehype-img-size";
 import rehypePrism from "rehype-prism-plus";
 import rehypeSlug from "rehype-slug";
-import remarkGfm from "remark-gfm";
 import remarkEmoji from "remark-emoji";
+import remarkGfm from "remark-gfm";
 
 import { getCategoryName } from "./category.helper";
 
