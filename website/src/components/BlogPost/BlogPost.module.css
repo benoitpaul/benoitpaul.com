@@ -38,3 +38,10 @@
 .blogPost ol {
   padding-inline-start: var(--size-3);
 }
+
+.blogPost ul li,
+.blogPost ol li {
+  line-height: 1.5;
+  max-inline-size: unset;
+  margin-bottom: var(--size-2);
+}

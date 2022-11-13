@@ -8,6 +8,9 @@ const nextConfig = {
       unoptimized: true,
     },
   },
+  images: {
+    domains: ["d1.awsstatic.com"],
+  },
 };
 
 module.exports = nextConfig;

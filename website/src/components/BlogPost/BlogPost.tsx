@@ -20,9 +20,17 @@ interface BlogPostProps {
 }
 
 const components = {
-  img: ({ alt, src, ...rest }: any) => (
-    <Image className={styles.image} {...rest} alt={alt} src={src} />
+  img: ({ alt, src, width, height, ...rest }: any) => (
+    <Image
+      className={styles.image}
+      width={width || 500}
+      height={height || 500}
+      {...rest}
+      alt={alt}
+      src={src}
+    />
   ),
+
   table: (props: any) => (
     <div style={{ overflowX: "auto" }}>
       <table {...props} />

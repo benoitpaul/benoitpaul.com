@@ -69,6 +69,11 @@ ul.nobullet > li {
   padding: 0;
 }
 
+blockquote {
+  font-style: italic;
+  max-inline-size: unset;
+}
+
 :where(a):where([href]):where(:visited) {
   text-decoration-color: var(--link);
 }
