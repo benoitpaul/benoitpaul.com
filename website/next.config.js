@@ -3,13 +3,9 @@ const nextConfig = {
   reactStrictMode: true,
   swcMinify: true,
   trailingSlash: true,
-  experimental: {
-    images: {
-      unoptimized: true,
-    },
-  },
   images: {
     domains: ["d1.awsstatic.com"],
+    unoptimized: true,
   },
 };
 
