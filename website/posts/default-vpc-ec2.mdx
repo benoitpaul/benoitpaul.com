@@ -1,0 +1,163 @@
+---
+title: Create an EC2 instance in default VPC with the CDK
+description: "Learn how to create an launch an EC2 instance in the default VPC with the CDK.  Examples are provided using the CDK in TypeScript."
+category: aws
+publishedDate: "2022-11-25"
+tags:
+  - aws
+  - ec2
+  - security-group
+  - cdk
+  - typescript
+---
+
+Launching an EC2 instance is a basic building block in AWS.
+In this tutorial, we'll achieve with the following steps:
+
+1. Get a hold of the default VPC
+2. Create a security group to allow inbound and outbound traffic
+3. Create an EC2 instance in the default VPC
+4. Initialize the EC2 instance with user data
+
+Here is the architecture of this tutorial:
+
+![Diagram of an EC2 instance launched in the default VPC](/images/default-vpc-ec2/architecture.svg)
+
+Let's start!
+
+## Create the CDK project
+
+Create the CDK project with:
+
+```bash
+mkdir default-vpc-ec2
+cd default-vpc-ec2
+npx aws-cdk init app --language typescript
+```
+
+## Get a hold of the default VPC
+
+Every AWS account comes with a [default VPC](https://docs.aws.amazon.com/vpc/latest/userguide/default-vpc.html), in each region.
+Since default VPCs comes with public subnets for each availability zone and an internet gateway, we have everything we need to launch an EC2 instance.
+
+You can grab the default VPC with this code:
+
+```typescript
+const vpc = ec2.Vpc.fromLookup(this, "VPC", {
+  isDefault: true,
+});
+```
+
+## Create the security group
+
+To make sure we can access the EC2 instance, we'll associate it with a [security group](https://docs.aws.amazon.com/vpc/latest/userguide/VPC_SecurityGroups.html).
+
+Security groups can allow inbound and outbound traffic, but not deny it.
+That's OK for for example, since we want to allow anyone from the internet to access our EC2 instance via HTTP.
+We'll also allow SSH.
+
+```typescript
+// Security group for the EC2 instance
+const securityGroup = new ec2.SecurityGroup(this, "SecurityGroup", {
+  vpc,
+  description: "Allow SSH (TCP port 22) and HTTP (TCP port 80) in",
+  allowAllOutbound: true,
+});
+
+// Allow SSH access on port tcp/22
+securityGroup.addIngressRule(
+  ec2.Peer.anyIpv4(),
+  ec2.Port.tcp(22),
+  "Allow SSH Access"
+);
+
+// Allow HTTP access on port tcp/80
+securityGroup.addIngressRule(
+  ec2.Peer.anyIpv4(),
+  ec2.Port.tcp(80),
+  "Allow HTTP Access"
+);
+```
+
+## Create an EC2 instance
+
+We're now ready to create the EC2 instance!
+
+First, let's get an [Amazon Machine Image (AMI)](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/AMIs.html) to launch the instance.
+We'll use the latest [Amazon Linux 2](https://aws.amazon.com/amazon-linux-2/), a good all purpose image, provided with no additional charge by Amazon.
+
+```typescript
+// latest Amazon Linux 2 Image with CPU Type X86_64
+const ami = ec2.MachineImage.latestAmazonLinux({
+  generation: ec2.AmazonLinuxGeneration.AMAZON_LINUX_2,
+  cpuType: ec2.AmazonLinuxCpuType.X86_64,
+});
+```
+
+We create the instance by specifying the VPC, the instance type (T2/Micro, to keep the cost down), the AMI and the security group.
+
+```typescript
+// Create the EC2 instance using the Security Group and AMI defined.
+const ec2Instance = new ec2.Instance(this, "Instance", {
+  vpc,
+  instanceType: ec2.InstanceType.of(
+    ec2.InstanceClass.T2,
+    ec2.InstanceSize.MICRO
+  ),
+  machineImage: ami,
+  securityGroup: securityGroup,
+});
+```
+
+If we'd stop there, we'd have an EC2 instance running, but it would do nothing.
+We're gonna change the EC2 instance into a webserver in the next step.
+
+## Initialize the EC2 instance with user data
+
+We launching an EC2 instance, we can run a script to configure and initialize it.
+
+We can do that with [user data](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/user-data.html).
+
+Let's create a shell script (user-data.sh), to update the instance, install nginx and serve HTML content:
+
+```bash filename="user-data.sh"
+#!/bin/bash
+yum update -y
+sudo su
+
+amazon-linux-extras install -y nginx1
+systemctl start nginx
+systemctl enable nginx
+
+chmod 2775 /usr/share/nginx/html
+find /usr/share/nginx/html -type d -exec chmod 2775 {} \;
+find /usr/share/nginx/html -type f -exec chmod 0664 {} \;
+
+echo "<h1>Simple EC2 website</h1>" > /usr/share/nginx/html/index.html
+```
+
+In CDK, we can add this user data to the instance, and the script will be executed after the instance start.
+
+```typescript
+const userData = readFileSync("./data/user-data.sh", "utf8");
+ec2Instance.addUserData(userData);
+```
+
+## Deploy the infrastructure
+
+To deploy the infrastructure to your account, simply run:
+
+```bash
+npx aws-cdk deploy
+```
+
+After a few minutes the infrastructure will be deployed.
+If you copy the public IP address of the EC2 instance in a browser tab, the HTML page will be served.
+Just make sure to use HTTP (and not HTTPS) in the url.
+
+## Conclusion
+
+This tutorial demonstrated how to start an EC2 instance in the default VPC.
+The EC2 instance is accessible via the internet, since it is associated to a security group that allows inbound HTTP traffic.
+
+Source code is available on [github](https://github.com/benoitpaul/aws-labs/tree/main/default-vpc-ec2).

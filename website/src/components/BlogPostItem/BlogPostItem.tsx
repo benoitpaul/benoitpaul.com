@@ -16,7 +16,7 @@ const BlogPostItem = ({ post }: BlogPostItemProps) => {
   return (
     <Link href={postUrl} className={styles.blogPostItem}>
       <header>
-        <h4>{post.title}</h4>
+        <h3>{post.title}</h3>
         <time dateTime={post.publishedDate}>
           {format(parseISO(post.publishedDate), "MMMM dd, yyyy")}
         </time>
