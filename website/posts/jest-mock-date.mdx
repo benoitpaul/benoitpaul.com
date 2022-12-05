@@ -1,0 +1,72 @@
+---
+title: How to mock Date in Jest tests
+description: "Learn two methods to mock the current Date in Jest, using jest.setSystemTime and jest.spyOn"
+category: javascript
+publishedDate: "2022-12-05"
+tags:
+  - javascript
+  - jest
+  - test
+---
+
+If you want to test code against the current date, you're likely to have to mock the JavaScript [Date](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date) object.
+
+There are two ways to mock the Date object constructor:
+
+- using `setSystemTime` (starting with Jest 26 and above)
+- using `spyOn` (before Jest 26)
+
+## Method 1: setSystemTime
+
+Since Jest 26 you can use Jest [`setSystemTime`](https://jestjs.io/docs/jest-object#jestsetsystemtimenow-number--date) to simulate a user changing the system clock while your program is running.
+
+Note that this method works with the [new modern fake timer](https://jestjs.io/blog/2020/05/05/jest-26#new-fake-timers), hence we make use of it, before setting the mock.
+
+To clear the mock, you can call [`useRealTimers`](https://jestjs.io/docs/jest-object#jestuserealtimers). This function will restore the original implementation of the global Date object.
+
+```JavaScript
+describe("after jest 26", () => {
+  beforeEach(() => {
+    const mockedDate = new Date(1999, 10, 1);
+
+    jest.useFakeTimers("modern");
+    jest.setSystemTime(mockedDate);
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
+  test("today is November 1st 1999", () => {
+    const today = new Date();
+    expect(today.toLocaleDateString("en-US")).toBe("11/1/1999");
+  });
+});
+```
+
+## Method 2: spyOn
+
+If your Jest version is older than Jest 26, you can still mock the Date object using Jest [`spyOn`](https://jestjs.io/docs/jest-object#jestspyonobject-methodname).
+
+```JavaScript
+describe("before jest 26", () => {
+  let spy;
+
+  beforeEach(() => {
+    const mockedDate = new Date(1996, 6, 19);
+
+    spy = jest.spyOn(global, "Date").mockImplementation(() => mockedDate);
+  });
+
+  afterEach(() => {
+    spy.mockRestore();
+  });
+
+  test("today is July 19th 1996", () => {
+    const today = new Date();
+    expect(today.toLocaleDateString("en-US")).toBe("7/19/1996");
+  });
+});
+```
+
+Complete code is available here: [https://github.com/benoitpaul/js-labs/tree/main/jest-mock-date](https://github.com/benoitpaul/js-labs/tree/main/jest-mock-date)

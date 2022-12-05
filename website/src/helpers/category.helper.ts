@@ -3,7 +3,10 @@ export interface Category {
   slug: string;
 }
 
-export const CATEGORIES: Category[] = [{ name: "AWS", slug: "aws" }];
+export const CATEGORIES: Category[] = [
+  { name: "AWS", slug: "aws" },
+  { name: "JavaScript", slug: "javascript" },
+];
 
 export const getCategoryBySlug = (categorySlug: string) => {
   return CATEGORIES.find((cat) => cat.slug === categorySlug)!;
