@@ -32,7 +32,7 @@ It's considered best practice that [infrastructure and runtime code live in the 
 I have a few requirements for my website:
 
 - redirect all http to https
-- the _canonical domain_ is www. In a nutshell: redirect the non-www domain to the www domain.
+- the _canonical domain_ is www, in a nutshell: redirect the non-www domain to the www domain.
 - clean urls, no \*.html extension. For example, the resume url is `https://www.benoitpaul.com/cv/`, not `https://www.benoitpaul.com/cv.html`
 
 ## Frontend: nextjs
@@ -97,8 +97,8 @@ To get the non-www redirecting to the canonical www domain, I had to create:
 - two cloudfront distributions
 - 2 sets of AA and AAAA records
 
-The canonical bucket - **www.benoitpaul.com** is set as a website with the index set to index.html.
-The naked domain bucket - **benoitpaul.com** is also set as a website, but with the redirect to www.benoitpaul.com
+The canonical bucket - `www.benoitpaul.com` is set as a website with the index set to index.html.
+The naked domain bucket - `benoitpaul.com` is also set as a website, but with the redirect to `www.benoitpaul.com`
 
 Then I set a cloudfront distribution for each bucket. Since the buckets are defined as websites, the CDK takes care of setting the cloudfront origin to the bucket [website endpoint](https://docs.aws.amazon.com/AmazonS3/latest/userguide/WebsiteEndpoints.html) (instead of the REST endpoint)
 

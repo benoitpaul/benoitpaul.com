@@ -17,7 +17,7 @@ const BlogPostHead = ({ post, hits }: BlogPostHeadProps) => {
   return (
     <div className={styles.blogPostHead}>
       <div className={styles.leftColumn}>
-        <Link href="/about" rel="author" title="Go to author page">
+        <Link href="/about/" rel="author" title="Go to author page">
           Benoit Paul
         </Link>
         <div>
