@@ -6,6 +6,7 @@ export interface Category {
 export const CATEGORIES: Category[] = [
   { name: "AWS", slug: "aws" },
   { name: "JavaScript", slug: "javascript" },
+  { name: "React", slug: "react" },
 ];
 
 export const getCategoryBySlug = (categorySlug: string) => {
