@@ -1,0 +1,632 @@
+---
+title: How to create integration tests with real AWS services
+description: "Learn why you should focus on integration tests for AWS applications and to create tests that run with real AWS services. Examples are provided using Jest and the CDK in TypeScript."
+category: aws
+publishedDate: "2022-12-22"
+tags:
+  - aws
+  - lambda
+  - dynamodb
+  - cdk
+  - typescript
+  - jest
+  - testing
+---
+
+Integration tests are a type of software testing that checks how different parts or components of a system work together.
+
+These tests focus on verifying the interaction between the different parts of the system and ensure that they are working together as expected.
+
+Integration tests are typically used in addition to unit tests, which test individual units of code, and acceptance tests, which test the overall functionality of the system from the perspective of the end user.
+
+Together, these types of tests help ensure that a system is working correctly and is ready for deployment.
+
+## Focus on integration tests for serverless applications
+
+### The testing pyramid
+
+The [testing pyramid](https://martinfowler.com/articles/practical-test-pyramid.html) is a concept in software testing that suggests the optimal balance of different types of tests in a project.
+The pyramid shape represents the relative proportions of the different types of tests, with the base of the pyramid representing unit tests, the middle layer representing integration tests, and the top layer representing acceptance tests.
+
+Unit tests are the most granular type of tests, focusing on individual units or components of code.
+They are typically the most numerous type of tests in a project, and they are typically run very frequently, often as part of the development process.
+Unit tests are fast to run and can be used to quickly catch problems in the code.
+
+Integration tests focus on how different parts or components of a system work together.
+They are used to validate the integration of different modules, subsystems, or components of a system and ensure that they are working together as expected.
+Integration tests are typically slower to run than unit tests and may require more setup, but they are still an important part of the testing process.
+
+Acceptance tests, also known as end-to-end tests, are the highest level of testing in the pyramid.
+They test the overall functionality of the system from the perspective of the end user and ensure that the system is working as intended.
+Acceptance tests are typically the least numerous and the most expensive to run, but they provide important assurance that the system is ready for deployment.
+
+The testing pyramid is a useful way to think about the balance of different types of tests in a project.
+By following the pyramid model and focusing on fast, granular unit tests as the foundation, teams can build a strong, reliable testing process that helps ensure the quality of their software.
+
+### The testing diamond
+
+The [testing diamond](https://eason.blog/posts/2020/03/test-automation-diamond/) is an alternative to the testing pyramid because it suggests a different balance of different types of tests.
+While the testing pyramid suggests a larger number of unit tests at the base and a smaller number of acceptance tests at the top, the testing diamond suggests a focus on the integration tests, and less unit and acceptance tests.
+
+The testing diamond is more appropriate for serverless AWS.
+There's only so much you can test with unit tests.
+Most bugs in AWS are a result of configuration or integration problems.
+Hence, the testing diamond emphasizes the importance of integration tests, which are often seen as critical for ensuring the correct functioning of a system.
+
+## The system under test
+
+The application we're gonna test is a Lambda that writes a user information to DynamoDB after a signup to a cognito user pool.
+
+Here is the CDK code for the stack:
+
+```TypeScript
+const usersTable = new dynamodb.Table(this, "UsersTable", {
+    billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+    partitionKey: { name: "id", type: dynamodb.AttributeType.STRING },
+    removalPolicy: RemovalPolicy.DESTROY,
+});
+
+const confirmUserSignup = new nodejs.NodejsFunction(
+    this,
+    "ConfirmUserSignup",
+    {
+        entry: join(__dirname, "..", "functions", "confirm-user-signup.ts"),
+        environment: {
+            USERS_TABLE: usersTable.tableName,
+            AWS_NODEJS_CONNECTION_REUSE_ENABLED: "1",
+        },
+    }
+);
+
+usersTable.grantWriteData(confirmUserSignup);
+
+const userPool = new cognito.UserPool(this, "UserPool", {
+    autoVerify: { email: true },
+    passwordPolicy: {
+        minLength: 8,
+        requireLowercase: false,
+        requireDigits: false,
+        requireSymbols: false,
+        requireUppercase: false,
+    },
+    signInAliases: { email: true },
+    standardAttributes: { fullname: { required: false, mutable: true } },
+    lambdaTriggers: {
+        postConfirmation: confirmUserSignup,
+    },
+    selfSignUpEnabled: true,
+    removalPolicy: RemovalPolicy.DESTROY,
+});
+
+confirmUserSignup.addPermission("ConfirmUserSignupPermission", {
+    action: "lambda:InvokeFunction",
+    principal: new iam.ServicePrincipal("cognito-idp.amazonaws.com"),
+    sourceArn: userPool.userPoolArn,
+});
+
+const userPoolClient = new cognito.UserPoolClient(this, "UserPoolClient", {
+    userPool: userPool,
+    authFlows: { userSrp: true, userPassword: true },
+    preventUserExistenceErrors: true,
+});
+
+new CfnOutput(this, "UserPoolId", { value: userPool.userPoolId });
+
+new CfnOutput(this, "UserPoolClientId", {
+    value: userPoolClient.userPoolClientId,
+});
+
+new CfnOutput(this, "AwsRegion", { value: cdk.Stack.of(this).region });
+```
+
+The stack create the following resources:
+
+- A dynamodb table, to store the user information. We're not naming this table, as AWS will generate one for us.
+- A lambda to write the user information to the table. The table is passed as These environment variable `USERS_TABLE`.
+- A cognito user pool to allow users to signup. The lambda previously defined is triggered by the PostConfirmation cognito event.
+- A few cloudformation outputs.
+
+This is the code for the lambda:
+
+```TypeScript
+import { PostConfirmationTriggerHandler } from "aws-lambda";
+import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
+import { DynamoDBDocumentClient, PutCommand } from "@aws-sdk/lib-dynamodb";
+
+const client = new DynamoDBClient({});
+const ddbDocClient = DynamoDBDocumentClient.from(client);
+
+const { USERS_TABLE } = process.env;
+
+export const handler: PostConfirmationTriggerHandler = async (event) => {
+  if (event.triggerSource === "PostConfirmation_ConfirmSignUp") {
+    const name = event.request.userAttributes["name"];
+    const user = {
+      id: event.userName,
+      name,
+      createdAt: new Date().toJSON(),
+    };
+
+    const command = new PutCommand({
+      TableName: USERS_TABLE,
+      Item: user,
+      ConditionExpression: "attribute_not_exists(id)",
+    });
+    await ddbDocClient.send(command);
+    return event;
+  } else {
+    return event;
+  }
+};
+```
+
+Let's deploy the stack now:
+
+```bash
+npx aws-cdk deploy
+```
+
+How can we test this system?
+
+We could write a unit test for the lambda, but there's not much logic in it. It just receives user information from cognito and write it down to dynamodb.
+
+Instead, we're gonna write an integration test.
+
+## How test integration with real AWS services
+
+In order to write integration tests against real AWS services, we're going need get the real environment variables and pass them down to the integration tests.
+
+### Fetching real environment variables
+
+The first step is to fetch the real environment variables
+
+We can get all stack information we need using the [aws-sdk](https://aws.amazon.com/sdk-for-javascript/):
+
+- [@aws-sdk/client-cloudformation](https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/clients/client-cloudformation/index.html) to fetch the stack outputs and lambda
+- [@aws-sdk/client-lambda](https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/clients/client-lambda/index.html) to fetch the lambda environment variables
+
+#### Fetching the stack outputs
+
+To fetch the stack outputs, use the following code:
+
+```TypeScript
+const fetchOutputs = async (stackName: string) => {
+  const client = new CloudFormationClient({});
+  const describeStacks = new DescribeStacksCommand({
+    StackName: stackName,
+  });
+
+  try {
+    const response = await client.send(describeStacks);
+    const stack = response.Stacks?.find(
+      ({ StackName }) => StackName === STACK_NAME
+    );
+
+    const variables = (stack?.Outputs || []).reduce(
+      (previousValue, currentValue) => {
+        return {
+          ...previousValue,
+          ...{ [currentValue.OutputKey!]: currentValue.OutputValue },
+        } as Record<string, string>;
+      },
+      {} as Record<string, string>
+    );
+    return variables;
+  } catch {
+    return {};
+  }
+};
+```
+
+#### Fetching the lambda environment variables
+
+To get the lambda environment variables:
+
+- We first need to get a list of lambdas in the stack.
+- For each lambda, get the environment variables
+
+```TypeScript
+const fetchFunctionsEnvironmentVariables = async (stackName: string) => {
+  const client = new CloudFormationClient({});
+  const listStackResources = new ListStackResourcesCommand({
+    StackName: stackName,
+  });
+
+  const response = await client.send(listStackResources);
+  const physicalResourceIds = response.StackResourceSummaries?.filter(
+    ({ ResourceType }) => ResourceType === "AWS::Lambda::Function"
+  ).map(({ PhysicalResourceId }) => PhysicalResourceId || "");
+
+  if (physicalResourceIds && physicalResourceIds.length > 0) {
+    const environmentVariables = (
+      await Promise.all(
+        physicalResourceIds.map((physicalResourceId) =>
+          fetchFunctionEnvironmentVariable(physicalResourceId)
+        )
+      )
+    )
+      .filter(Boolean)
+      .reduce((previousValue, currentValue) => {
+        const newValue = { ...previousValue, ...currentValue };
+        return newValue;
+      }, {});
+    return environmentVariables;
+  } else {
+    return {};
+  }
+};
+
+const fetchFunctionEnvironmentVariable = async (functionName: string) => {
+  const client = new LambdaClient({});
+
+  const getFunctionConfiguration = new GetFunctionConfigurationCommand({
+    FunctionName: functionName,
+  });
+
+  try {
+    const response = await client.send(getFunctionConfiguration);
+    const environmentVariables = response?.Environment?.Variables;
+    return environmentVariables || {};
+  } catch {
+    return {};
+  }
+};
+```
+
+#### Writing the environment variables to a .env file
+
+Once we have the stack outputs and all lambdas environment variables, we can consolidate them in a `.env` file.
+
+```TypeScript
+export const writeEnvironmentVariables = async (
+  stackName: string,
+  filePath: string
+) => {
+  const environmentVariables = await fetchEnvironmentVariables(stackName);
+  const content = environmentVariablesToString(environmentVariables);
+
+  writeFileSync(filePath, content);
+};
+
+const environmentVariablesToString = (
+  environmentVariables: Record<string, string>
+) => {
+  const envVars = Object.keys(environmentVariables).map((key) => {
+    return `${snakeCase(key).toUpperCase()}=${environmentVariables[key]}`;
+  });
+  return envVars.join(EOL);
+};
+
+const fetchEnvironmentVariables = async (stackName: string) => {
+  const environmentVariables = (
+    await Promise.all([
+      fetchOutputs(stackName),
+      fetchFunctionsEnvironmentVariables(stackName),
+    ])
+  )
+    .filter(Boolean)
+    .reduce((previousValue, currentValue) => {
+      const newValue = { ...previousValue, ...currentValue };
+      return newValue;
+    }, {});
+  return environmentVariables;
+};
+```
+
+Calling the the function `writeEnvironmentVariables` generates this file:
+
+```bash
+USER_POOL_CLIENT_ID=7npp0c5g4raim1km8ehftodo7v
+USER_POOL_ID=us-east-1_XMSOSvNnI
+AWS_REGION=us-east-1
+USERS_TABLE=IntegrationTestsStack-UsersTable9725E9C8-V4YNPJDFG4L4
+AWS_NODEJS_CONNECTION_REUSE_ENABLED=1
+```
+
+### Setup the integration tests
+
+We want to separate the unit tests from the integration tests so they can be run separatly.
+
+To run the integration tests, we'll want to use this command:
+
+```bash
+npm run test:integration
+```
+
+#### globalSetup
+
+Let's start with defining a jest [globalSetup](https://jestjs.io/docs/configuration#globalsetup-string) module that will be triggered once before all test suites.
+This is where we'll fetch the environment variables, write them to the `.env.integration` file, so they can be used with `process.env`.
+
+```TypeScript
+// globalSetup.ts
+
+import { STACK_NAME, writeEnvironmentVariables } from "../lib/write-env-vars";
+import { config as loadEnv } from "dotenv";
+
+export default async () => {
+  console.log("Writing environment variables...");
+  await writeEnvironmentVariables(STACK_NAME, ".env.integration");
+
+  console.log("Loading environment variables...");
+  loadEnv({ path: ".env.integration" });
+};
+
+```
+
+#### Jest configuration file
+
+Next we define a jest configuration file for the integration tests:
+
+- The integration tests will be be in the `test/integration` directory.
+- the `globalSetup` module needs to be executed.
+
+```TypeScript
+// jest.integration.config.ts
+
+const commonJestConfig = require("./jest.config");
+
+module.exports = {
+  ...commonJestConfig,
+  testEnvironment: "node",
+  roots: ["<rootDir>/test/integration"],
+  globalSetup: "<rootDir>/test/integration/globalSetup.ts",
+};
+```
+
+#### Create the Jest Integration script
+
+And with that, we're ready to create the `test:integration` script in package.json.
+
+```json
+{
+  "scripts": {
+    "test:integration": "jest -c jest.integration.config.ts --runInBand"
+  }
+}
+```
+
+## Writing the integration test
+
+We're going to follow the classic [AAA pattern](https://robertmarshall.dev/blog/arrange-act-and-assert-pattern-the-three-as-of-unit-testing/) with our integration test: Arrange, Act, Assert.
+
+### Arrange
+
+The _arrange step_ is simply a matter of simulating user data created by Cognito.
+
+We use the [chance library](https://chancejs.com/) to generate random data.
+
+```TypeScript
+const firstName = Chance().first({ nationality: "en" });
+const lastName = Chance().last({ nationality: "en" });
+const name = `${firstName} ${lastName}`;
+const email = `${firstName}-${lastName}@test.com`;
+const username = Chance().guid();
+```
+
+### Act
+
+The _act step_ is more interesting. We need to call the lambda locally, pretending it was called from Cognito.
+We'll mock the `event` and `context` objects arguments of the lambda.
+
+#### How to mock the lambda context argument
+
+The lambda `context` argument is of type Context, as per aws-lambda.
+
+To mock the context argument, you can use:
+
+```TypeScript
+const MOCKED_CONTEXT: Context = {
+  callbackWaitsForEmptyEventLoop: false,
+  functionName: "mocked",
+  functionVersion: "mocked",
+  invokedFunctionArn: "mocked",
+  memoryLimitInMB: "mocked",
+  awsRequestId: "mocked",
+  logGroupName: "mocked",
+  logStreamName: "mocked",
+  getRemainingTimeInMillis(): number {
+    return 999;
+  },
+  done(error?: Error, result?: any): void {
+    return;
+  },
+  fail(error: Error | string): void {
+    return;
+  },
+  succeed(messageOrObject: any): void {
+    return;
+  },
+};
+```
+
+#### Mocking the lambda `event` argument
+
+Mocking the lambda `event` argument depends on which service triggers the lambda.
+
+In our case the Cognito `PostConfirmation` event triggers the lambda, so the event is of type `PostConfirmationConfirmSignUpTriggerEvent`.
+
+Notice how we make use of the `AWS_REGION` and `COGNITO_USER_POOL_ID` environment variables to mock the Cognito event parameter to the lambda.
+The lambda code itself will make use of the `USERS_TABLE` environment variable.
+
+```TypeScript
+const event: PostConfirmationConfirmSignUpTriggerEvent = {
+    version: "1",
+    region: process.env.AWS_REGION!,
+    userPoolId: process.env.COGNITO_USER_POOL_ID!,
+    userName: username,
+    triggerSource: "PostConfirmation_ConfirmSignUp",
+    request: {
+    userAttributes: {
+        sub: username,
+        "cognito:email_alias": email,
+        "cognito:user_status": "CONFIRMED",
+        email_verified: "false",
+        name: name,
+        email: email,
+    },
+    },
+    response: {},
+    callerContext: {
+    awsSdkVersion: "3",
+    clientId: "string",
+    },
+};
+```
+
+### Act
+
+Finally, for the _act step_, we want to verify that the user information is written to the DynamoDB table.
+
+We'll query the DynamoDB table to make sure it has an item for the corresponding user.
+
+Notice how the table name is set using the `USERS_TABLE` environment variable.
+
+```TypeScript
+const client = new DynamoDBClient({});
+const ddDocClient = DynamoDBDocumentClient.from(client);
+
+const getUser = new GetCommand({
+    TableName: process.env.USERS_TABLE,
+    Key: {
+        id: username,
+    },
+});
+const resp = await ddDocClient.send(getUser);
+const ddbUser = resp.Item;
+
+expect(ddbUser).toMatchObject({
+    id: username,
+    name,
+    createdAt: expect.stringMatching(
+        /\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d:[0-5]\d(?:\.\d+)?Z?/g
+    ),
+});
+```
+
+### Complete integration code
+
+Here is the complete code for the integration test:
+
+```TypeScript
+// confirm-user-signup.test.ts
+
+import { Chance } from "chance";
+import { Context, PostConfirmationConfirmSignUpTriggerEvent } from "aws-lambda";
+import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
+import { DynamoDBDocumentClient, GetCommand } from "@aws-sdk/lib-dynamodb";
+import { handler as confirmUserSignup } from "../../functions/confirm-user-signup";
+
+const MOCKED_CONTEXT: Context = {
+  callbackWaitsForEmptyEventLoop: false,
+  functionName: "mocked",
+  functionVersion: "mocked",
+  invokedFunctionArn: "mocked",
+  memoryLimitInMB: "mocked",
+  awsRequestId: "mocked",
+  logGroupName: "mocked",
+  logStreamName: "mocked",
+  getRemainingTimeInMillis(): number {
+    return 999;
+  },
+  done(error?: Error, result?: any): void {
+    return;
+  },
+  fail(error: Error | string): void {
+    return;
+  },
+  succeed(messageOrObject: any): void {
+    return;
+  },
+};
+
+describe("When confirmUserSignup runs", () => {
+  it("The user's profile should be saved in DynamoDb", async () => {
+    // Arrange
+    const firstName = Chance().first({ nationality: "en" });
+    const lastName = Chance().last({ nationality: "en" });
+    const name = `${firstName} ${lastName}`;
+    const email = `${firstName}-${lastName}@test.com`;
+    const username = Chance().guid();
+
+    // Act
+    const event: PostConfirmationConfirmSignUpTriggerEvent = {
+      version: "1",
+      region: process.env.AWS_REGION!,
+      userPoolId: process.env.COGNITO_USER_POOL_ID!,
+      userName: username,
+      triggerSource: "PostConfirmation_ConfirmSignUp",
+      request: {
+        userAttributes: {
+          sub: username,
+          "cognito:email_alias": email,
+          "cognito:user_status": "CONFIRMED",
+          email_verified: "false",
+          name: name,
+          email: email,
+        },
+      },
+      response: {},
+      callerContext: {
+        awsSdkVersion: "3",
+        clientId: "string",
+      },
+    };
+    await confirmUserSignup(event, MOCKED_CONTEXT, () => {});
+
+    // Assert
+    const client = new DynamoDBClient({});
+    const ddDocClient = DynamoDBDocumentClient.from(client);
+
+    const getUser = new GetCommand({
+      TableName: process.env.USERS_TABLE,
+      Key: {
+        id: username,
+      },
+    });
+    const resp = await ddDocClient.send(getUser);
+    const ddbUser = resp.Item;
+
+    expect(ddbUser).toMatchObject({
+      id: username,
+      name,
+      createdAt: expect.stringMatching(
+        /\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d:[0-5]\d(?:\.\d+)?Z?/g
+      ),
+    });
+  });
+});
+```
+
+## Running the test
+
+To run the test, run this command:
+
+```bash
+npm run test:integration
+```
+
+The will run locally, against the real AWS services:
+
+```bash
+➜ npm run test:integration
+
+> integration-tests@0.1.0 test:integration
+> jest -c jest.integration.config.ts --runInBand
+
+Determining test suites to run...Writing environment variables...
+Loading environment variables...
+ PASS  test/integration/confirm-user-signup.test.ts
+  When confirmUserSignup runs
+    ✓ The user's profile should be saved in DynamoDb (362 ms)
+
+Test Suites: 1 passed, 1 total
+Tests:       1 passed, 1 total
+Snapshots:   0 total
+Time:        1.85 s, estimated 2 s
+Ran all test suites.
+```
+
+Source code is available here:
+
+[https://github.com/benoitpaul/aws-labs/tree/main/integration-tests](https://github.com/benoitpaul/aws-labs/tree/main/integration-tests)
