@@ -127,6 +127,7 @@ The queue will act as a buffer between the sender and the receiver of the messag
 This will decrease the _temporal coupling_ of the SNS topic and the lambda that receives the messages.
 
 In other words, the communication between the two does not have to synchronous, it can be asynchronous.
+This is also called the [asynchronous point-to-point model](https://serverlessland.com/event-driven-architecture/point-to-point-messaging).
 
 Here is how is works, at a high level:
 
@@ -264,7 +265,19 @@ While messages A and B were processed successfully, they're gonna be processed a
 
 One solution to this problem is to make the processing of message [idempotent](https://en.wikipedia.org/wiki/Idempotence).
 
-But it's still not perfect, in that we're wasting processing power for messages that don't need it anymore.
+#### What is idempotence?
+
+According to [wikipedia](https://en.wikipedia.org/wiki/Idempotence), idempotence is:
+
+> The property of certain operations in mathematics and computer science whereby they can be applied multiple times without changing the result beyond the initial application
+
+For our need, [Enterprise Integration Patterns](https://www.enterpriseintegrationpatterns.com/IdempotentReceiver.html) clarifies the definition of idempotence as:
+
+> In Messaging this concepts translates into a message that has the same effect whether it is received once or multiple times.
+
+The [AWS Lambda Powertools](https://awslabs.github.io/aws-lambda-powertools-python/2.4.0/utilities/idempotency/) offers a great utility to convert Lambda functions into idempotent operations which are safe to retry.
+
+While idempotence is a solution, it's still not perfect, in that we're wasting processing power for messages that don't need it anymore.
 
 ### Handling partial batch failures gracefully
 

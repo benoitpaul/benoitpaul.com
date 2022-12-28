@@ -1,0 +1,372 @@
+---
+title: KMS multi-region keys
+description: "Learn how to create KMS multi-region keys using CDK L1 constructs CfnKey and CfnReplicaKey.  How to pass parameter between stacks in different regions. Example in CDK"
+category: aws
+publishedDate: "2022-12-28"
+tags:
+  - aws
+  - kms
+  - multi-region
+  - ssm
+  - typescript
+  - cdk
+---
+
+[AWS Key Management Service](https://aws.amazon.com/kms/) (KMS) is a fully managed service that makes it easy to create and control the encryption keys used to encrypt your data.
+
+One of the key features of KMS is its support for [multi-region replication](https://docs.aws.amazon.com/kms/latest/developerguide/multi-region-keys-overview.html), which allows you to create and manage encryption keys across multiple regions.
+
+Multi-region replication is a useful feature for organizations that operate in multiple regions or have a global presence.
+It allows you to use the same encryption keys across multiple regions, which simplifies the process of encrypting and decrypting data as it is transferred between regions.
+This can be particularly useful for organizations that need to frequently transfer sensitive data between regions, such as for backup and disaster recovery purposes.
+
+One of the benefits of using KMS multi-region replication is that it allows you to have a consistent encryption strategy across all of your regions.
+This can make it easier to manage and enforce security policies, as you can use the same encryption keys and processes in all regions. It can also help to reduce the risk of data loss or exposure, as you can use the same encryption keys to protect data in all regions.
+
+## How to create a KMS multi-region key
+
+To use KMS multi-region replication, you first need to create a key in one region, and then replicate it to one or more additional regions.
+You can replicate a key to up to four regions, and each key can have a different set of enabled regions.
+Once a key has been replicated to a region, you can use it to encrypt and decrypt data in that region just like any other key.
+
+There is no L2 CDK construct to create a KMS multi-region key yet, so we'll use the L1 constructs: [`CfnKey`](https://docs.aws.amazon.com/cdk/api/v2/docs/aws-cdk-lib.aws_kms.CfnKey.html) and [`CfnReplicaKey`](https://docs.aws.amazon.com/cdk/api/v2/docs/aws-cdk-lib.aws_kms.CfnReplicaKey.html).
+
+In this tutorial, we're going to create the multi-region key in the us-east-1 region (the _primary key_).
+The key will then be replicated in the eu-west-1 region (the _replica key_).
+
+## Creating the multi-region key
+
+Let's first create a stack to create the KMS multi-region key:
+
+```TypeScript
+import * as cdk from "aws-cdk-lib";
+import { Construct } from "constructs";
+import * as kms from "aws-cdk-lib/aws-kms";
+
+const createPolicy = (stack: cdk.Stack): any => {
+  return {
+    Statement: [
+      {
+        Sid: "Enable IAM policies",
+        Effect: "Allow",
+        Principal: {
+          AWS: `arn:${cdk.Stack.of(stack).partition}:iam::${
+            cdk.Stack.of(stack).account
+          }:root`,
+        },
+        Action: "kms:*",
+        Resource: "*",
+      },
+    ],
+  };
+};
+
+export class PrimaryStack extends cdk.Stack {
+  public readonly primaryKeyArn: string;
+  constructor(scope: Construct, id: string, props: cdk.StackProps) {
+    super(scope, id, props);
+
+    const primaryKey = new kms.CfnKey(this, "KmsPrimaryKey", {
+      keyPolicy: createPolicy(this),
+      multiRegion: true,
+    });
+
+    this.primaryKeyArn = primaryKey.attrArn;
+  }
+}
+```
+
+The `createPolicy` helper function generates a good [default policy](https://docs.aws.amazon.com/kms/latest/developerguide/key-policy-default.html) for the KMS key.
+
+In order to create the multi-region key, we use the `CfnKey` L1 construct and set the `multiregion` property.
+A multi-region KMS key ID always start with `mrk-`.
+
+We're also keeping a reference to the KMS key arn, since we'll gonna need it later.
+
+## Creating the replica key
+
+Next, let's replicate the multi-region key in another stack:
+
+```TypeScript
+import * as cdk from "aws-cdk-lib";
+import { Construct } from "constructs";
+import * as kms from "aws-cdk-lib/aws-kms";
+
+interface ReplicaStackProps extends cdk.StackProps {
+    primaryKeyArn: string;
+}
+
+export class ReplicaStack extends cdk.Stack {
+  constructor(scope: Construct, id: string, props: ReplicaStackProps) {
+    super(scope, id, props);
+
+    const { primaryKeyArn } = props;
+
+    new kms.CfnReplicaKey(this, "KmsReplicaKey", {
+      primaryKeyArn,
+      keyPolicy: createPolicy(this),
+    });
+  }
+}
+```
+
+We're using the `CfnReplicaKey` L1 construct to replicate the kms key.
+
+We're passing the primary key arn, as a `StackProps` parameter.
+
+Since the replica key will be created in the region the stack is created in, we'll need to create both stacks in different regions:
+
+```TypeScript
+const { primaryKeyArn } = new PrimaryStack(app, "PrimaryStack", {
+    env: {
+        region: "us-east-1"
+    }
+});
+
+new ReplicaStack(app, "ReplicaStack", {
+  primaryKeyArn,
+  env: {
+    region: "eu-west-1",
+  },
+```
+
+However, when deploying the stacks, we get this error:
+
+```bash
+Error: Stack "ReplicaStack" cannot consume a cross reference from stack "PrimaryStack". Cross stack references are only supported for stacks deployed to the same environment or between nested stacks and their parent stack
+```
+
+## How to pass a parameter from a stack in one region to another region
+
+In order to pass a parameter from one stack to another, in different regions, using CloudFormation Outputs (`CfnOutput`) or `StackProps` won't work, as they can only be used between stacks in the [same region](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/walkthrough-crossstackref.html).
+
+What we can do instead is save the parameter to share in the [System Manager Parameter Store](https://docs.aws.amazon.com/systems-manager/latest/userguide/systems-manager-parameter-store.html):
+
+```TypeScript
+new ssm.StringParameter(this, "PrimaryKeyArn", {
+    parameterName: "...",
+    description: "...",
+    stringValue: "...",
+});
+```
+
+To retrieve the parameter, we can use a [custom resource](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/template-custom-resources.html):
+
+```TypeScript
+import { Construct } from "constructs";
+import * as cr from "aws-cdk-lib/custom-resources";
+import * as iam from "aws-cdk-lib/aws-iam";
+
+interface SSMParameterReaderProps {
+  parameterName: string;
+  region: string;
+}
+
+export class SSMParameterReader extends cr.AwsCustomResource {
+  constructor(scope: Construct, name: string, props: SSMParameterReaderProps) {
+    const { parameterName, region } = props;
+
+    const ssmAwsSdkCall: cr.AwsSdkCall = {
+      service: "SSM",
+      action: "getParameter",
+      parameters: {
+        Name: parameterName,
+      },
+      region,
+      physicalResourceId: { id: Date.now().toString() }, // Update physical id to always fetch the latest version
+    };
+
+    super(scope, name, {
+      onUpdate: ssmAwsSdkCall,
+      policy: {
+        statements: [
+          new iam.PolicyStatement({
+            resources: ["*"],
+            actions: ["ssm:GetParameter"],
+            effect: iam.Effect.ALLOW,
+          }),
+        ],
+      },
+    });
+  }
+
+  public getParameterValue(): string {
+    return this.getResponseField("Parameter.Value").toString();
+  }
+}
+```
+
+### Passing the primary key ARN to the replica stack
+
+Now we can update the stacks, so that `ReplicaStack` uses the primary key ARN created in `PrimaryStack`.
+
+```TypeScript
+import * as cdk from "aws-cdk-lib";
+import { Construct } from "constructs";
+import * as kms from "aws-cdk-lib/aws-kms";
+import * as ssm from "aws-cdk-lib/aws-ssm";
+import { SSMParameterReader } from "./SSMParameterReader";
+
+const PRIMARY_KEY_ARN = "PRIMARY_KEY_ARN";
+
+const createPolicy = (stack: cdk.Stack): any => {
+  return {
+    Statement: [
+      {
+        Sid: "Enable IAM policies",
+        Effect: "Allow",
+        Principal: {
+          AWS: `arn:${cdk.Stack.of(stack).partition}:iam::${
+            cdk.Stack.of(stack).account
+          }:root`,
+        },
+        Action: "kms:*",
+        Resource: "*",
+      },
+    ],
+  };
+};
+
+export class PrimaryStack extends cdk.Stack {
+  public readonly primaryKeyArn: string;
+  constructor(scope: Construct, id: string, props: cdk.StackProps) {
+    super(scope, id, props);
+
+    const primaryKey = new kms.CfnKey(this, "KmsPrimaryKey", {
+      keyPolicy: createPolicy(this),
+      multiRegion: true,
+    });
+
+    this.primaryKeyArn = primaryKey.attrArn;
+
+    new ssm.StringParameter(this, "PrimaryKeyArn", {
+      parameterName: PRIMARY_KEY_ARN,
+      description: "The primary key ARN to be replicated",
+      stringValue: primaryKey.attrArn,
+    });
+  }
+}
+
+export class ReplicaStack extends cdk.Stack {
+  constructor(scope: Construct, id: string, props: cdk.StackProps) {
+    super(scope, id, props);
+
+    const primaryKeyArnSSMReader = new SSMParameterReader(
+      this,
+      "PrimaryKeyArnSSMReader",
+      {
+        parameterName: PRIMARY_KEY_ARN,
+        region: "us-east-1",
+      }
+    );
+
+    const primaryKeyArn = primaryKeyArnSSMReader.getParameterValue();
+
+    new kms.CfnReplicaKey(this, "KmsReplicaKey", {
+      primaryKeyArn,
+      keyPolicy: createPolicy(this),
+    });
+  }
+}
+```
+
+And the stacks are created like so:
+
+```TypeScript
+const app = new cdk.App();
+new PrimaryStack(app, "PrimaryStack", {
+env: {
+    region: "us-east-1",
+  },
+});
+
+new ReplicaStack(app, "ReplicaStack", {
+  env: {
+    region: "eu-west-1",
+  },
+});
+```
+
+We can deploy both stacks:
+
+```bash
+npx aws-cdk deploy --all
+```
+
+## Testing the KMS key
+
+We can test our infrastructure by encrypting some data, then decrypting it in both regions, using the AWS CLI.
+
+## Encrypting data
+
+To [encrypt](https://docs.aws.amazon.com/cli/latest/reference/kms/encrypt.html) the content of a file, we'll use command:
+
+```bash
+aws kms encrypt \
+ --plaintext fileb://secret-message.txt \
+ --key-id <YOUR_MRK_KEY> \
+ --region us-east-1 \
+ --output text \
+ --query CiphertextBlob | base64 --decode > secret-message.enc
+```
+
+This command will encrypt the content of the secret-message.txt file into the secret-message.enc file.
+Notice that we're encrypting the data using the us-east-1 key.
+
+## Decrypting the data within the same region
+
+To [decrypt](https://docs.aws.amazon.com/cli/latest/reference/kms/decrypt.html) the data we can use this command:
+
+```bash
+aws kms decrypt \
+ --ciphertext-blob fileb://secret-message.enc \
+ --key-id <YOUR_MRK_KEY> \
+ --region us-east-1 \
+ --output text \
+ --query Plaintext | base64 --decode > secret-message-us-east-1.dec
+```
+
+Notice that we're decrypting the file using the same key, in the same region that we've use for encryption (us-east-1).
+
+## Decrypting the data within a region without replica key
+
+Let's try to decrypt the data in ca-central-1, a region without a replica key:
+
+```bash
+aws kms decrypt \
+ --ciphertext-blob fileb://secret-message.enc \
+ --key-id <YOUR_MRK_KEY> \
+ --region ca-central-1 \
+ --output text \
+ --query Plaintext | base64 --decode > secret-message-ca-central-1.dec
+```
+
+Running this command generate the error:
+
+```bash
+An error occurred (AccessDeniedException) when calling the Decrypt operation: The ciphertext refers to a customer master key that does not exist, does not exist in this region, or you are not allowed to access.
+```
+
+This demosntrates that without replicating a key, we can't use it in another region.
+
+## Decrypting the data within a region with a replica key
+
+We can verify that the replica key works by decrypting the data in eu-west-1, the region we created the replica key into:
+
+```bash
+aws kms decrypt \
+ --ciphertext-blob fileb://secret-message.enc \
+ --key-id <YOUR_MRK_KEY> \
+ --region eu-west-1 \
+ --output text \
+ --query Plaintext | base64 --decode > secret-message-eu-west-1.dec
+```
+
+## Conclusion
+
+AWS KMS multi-region replication is a useful feature for organizations that operate in multiple regions or have a global presence.
+It allows you to create and manage encryption keys across multiple regions, which simplifies the process of encrypting and decrypting data as it is transferred between regions.
+
+By using KMS multi-region replication, you can have a consistent encryption strategy across all of your regions, which can help to reduce the risk of data loss or exposure and make it easier to manage and enforce security policies.
+
+Source code available on [github](https://github.com/benoitpaul/aws-labs/tree/main/kms-multiregion)
