@@ -26,7 +26,6 @@ This can make it easier to manage and enforce security policies, as you can use 
 ## How to create a KMS multi-region key
 
 To use KMS multi-region replication, you first need to create a key in one region, and then replicate it to one or more additional regions.
-You can replicate a key to up to four regions, and each key can have a different set of enabled regions.
 Once a key has been replicated to a region, you can use it to encrypt and decrypt data in that region just like any other key.
 
 There is no L2 CDK construct to create a KMS multi-region key yet, so we'll use the L1 constructs: [`CfnKey`](https://docs.aws.amazon.com/cdk/api/v2/docs/aws-cdk-lib.aws_kms.CfnKey.html) and [`CfnReplicaKey`](https://docs.aws.amazon.com/cdk/api/v2/docs/aws-cdk-lib.aws_kms.CfnReplicaKey.html).
