@@ -1,0 +1,97 @@
+---
+title: "Unmarshalling DynamoDB Data in TypeScript AWS Lambda Functions"
+description: "Learn how to easily unmarshall DynamoDB data in TypeScript AWS Lambda functions using the AWS SDK for JavaScript in Node.js. This step-by-step guide covers the process of importing the necessary modules, defining a function to handle incoming DynamoDB events and converting the data into JavaScript objects for further processing."
+category: aws
+publishedDate: "2023-01-26"
+tags:
+  - aws
+  - dynamodb
+  - dynamodb-stream
+  - lambda
+---
+
+DynamoDB is a popular NoSQL database service provided by Amazon Web Services (AWS) and is often used in serverless applications such as AWS Lambda.
+
+In this article, we will discuss how to easily unmarshall DynamoDB data in TypeScript AWS Lambda functions.
+
+Unmarshalling is the process of converting DynamoDB data, which is typically in JSON format, into a JavaScript object that can be easily manipulated in your code.
+
+This guide will walk you through the process of importing the necessary modules, defining a function to handle incoming DynamoDB events, and converting the data into JavaScript objects for further processing.
+
+## DynamoDB records are not standard JavaScript objects
+
+Here the code for a lambda that processes DynamoDB Stream records:
+
+```TypeScript
+import { DynamoDBStreamHandler } from "aws-lambda";
+
+export const handler: DynamoDBStreamHandler = async (event) => {
+  for (const record of event.Records) {
+    if (record.dynamodb && record.dynamodb.NewImage) {
+        const newImage = record.dynamodb.NewImage;
+        console.log("New Image: %j", newImage);
+    }
+  }
+};
+```
+
+The `newImage` object will have this form:
+
+```JSON
+{
+    "Message": {
+        "S": "New item!"
+    },
+    "Id": {
+        "N": "101"
+    }
+}
+```
+
+What if we want a standard JavaScript object?
+
+## How to unmarshall DynamoDB records
+
+The AWS SDK provides the [`unmashall`](https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/modules/_aws_sdk_util_dynamodb.html#unmarshall-1) function to convert a DynamoDB record into a JavaScript object.
+
+Here is how to use it:
+
+```TypeScript
+import { DynamoDBStreamHandler } from "aws-lambda";
+import {
+  AttributeValue,
+} from "@aws-sdk/client-dynamodb";
+import { unmarshall } from "@aws-sdk/util-dynamodb";
+
+export const handler: DynamoDBStreamHandler = async (event) => {
+  for (const record of event.Records) {
+    if (record.dynamodb && record.dynamodb.NewImage) {
+        const newImage = unmarshall(
+            record.dynamodb.NewImage as { [key: string]: AttributeValue }
+        );
+        console.log("New Image: %j", newImage);
+    }
+  }
+};
+```
+
+The trick to use `unmarshall` with DynamoDB Stream record, is that we have to cast it to `{ [key: string]: AttributeValue }`.
+
+After unmarshalling the DynamoDB Stream record, `newImage` is a standard JavaScript object:
+
+```JSON
+{
+    "Message": "New item!",
+    "Id": 101
+}
+```
+
+## Conclusion
+
+In conclusion, unmarshalling DynamoDB data in TypeScript AWS Lambda functions is a simple process that allows developers to easily interact with DynamoDB data in their TypeScript applications.
+
+By importing the necessary modules and using the unmarshall method provided by the AWS SDK for JavaScript in Node.js, developers can easily convert DynamoDB data into JavaScript objects for further processing.
+
+Additionally, the AWS SDK also provides a [`marshall`](https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/modules/_aws_sdk_util_dynamodb.html#marshall) function that can be used to convert a JavaScript object into a format that can be saved to DynamoDB, which is useful when creating or updating items in the database.
+
+By following the steps outlined in this article, developers can easily work with DynamoDB data in their TypeScript Lambda functions.

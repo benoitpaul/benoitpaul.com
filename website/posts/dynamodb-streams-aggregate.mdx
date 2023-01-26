@@ -191,6 +191,8 @@ We're using the TypeScript types from `@types/aws-lambda` to help us with type-s
 Since the lambda is triggered by a DynamoDB Stream, we define the handler function as a [`DynamoDBStreamHandler`](https://github.com/DefinitelyTyped/DefinitelyTyped/blob/f11b860a1da2bd626c7af9dff8a979c2dc1a730f/types/aws-lambda/trigger/dynamodb-stream.d.ts#L4), so we can except an event of type [`DynamoDBStreamEvent`](https://github.com/DefinitelyTyped/DefinitelyTyped/blob/f11b860a1da2bd626c7af9dff8a979c2dc1a730f/types/aws-lambda/trigger/dynamodb-stream.d.ts#L44).
 We loop through each record, and if there is a `NewImage` on the stream record, we update the `InvoiceTotal` table with the new amount.
 
+It's easier to [unmarshall](https://www.benoitpaul.com/blog/aws/dynamodb-streams-unmarshall/) the DynamoDB record, so we can use JavaScript objects.
+
 ## Testing the system
 
 Let's test the scenario by adding some items to the `InvoiceTransactions` table:
