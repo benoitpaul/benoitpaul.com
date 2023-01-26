@@ -1,0 +1,21 @@
+.sideNote {
+  border-radius: var(--radius-2);
+  padding: var(--size-3);
+}
+
+.sideNote.info {
+  background-color: var(--surface-info);
+}
+
+.sideNote.success {
+  background-color: var(--surface-success);
+}
+
+.sideNote.warning {
+  background-color: var(--surface-warning);
+}
+
+.sideNote .title {
+  display: block;
+  margin-bottom: var(--size-3);
+}

@@ -10,6 +10,13 @@
 
   --brand-inverse-light: var(--indigo-1);
   --brand-inverse-dark: var(--indigo-7);
+
+  --surface-info-light: var(--blue-0);
+  --surface-info-dark: var(--blue-0);
+  --surface-success-light: var(--green-0);
+  --surface-success-dark: var(--green-0);
+  --surface-warning-light: var(--orange-0);
+  --surface-warning-dark: var(--orange-0);
 }
 
 :where(html) {
@@ -17,6 +24,10 @@
   --brand-inverse: var(--brand-inverse-light);
 
   --text-2: var(--gray-7);
+
+  --surface-info: var(--surface-info-light);
+  --surface-success: var(--surface-success-light);
+  --surface-warning: var(--surface-warning-light);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -25,6 +36,10 @@
     --brand-inverse: var(--brand-inverse-dark);
 
     --text-2: var(--gray-6);
+
+    --surface-info: var(--surface-info-dark);
+    --surface-success: var(--surface-success-dark);
+    --surface-warning: var(--surface-warning-dark);
   }
 }
 

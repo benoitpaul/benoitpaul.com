@@ -6,6 +6,7 @@ import {
   getArticleStatistics,
   incrementArticleHitCount,
 } from "@api/statistics";
+import SideNote from "@components/SideNote";
 import { Post } from "@helpers/post.helper";
 
 import { useQuery } from "@tanstack/react-query";
@@ -36,6 +37,8 @@ const components = {
       <table {...props} />
     </div>
   ),
+
+  SideNote: (props: any) => <SideNote {...props} />,
 };
 
 const BlogPost = ({ post }: BlogPostProps) => {
