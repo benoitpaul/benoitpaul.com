@@ -10,7 +10,7 @@ tags:
   - lambda
 ---
 
-DynamoDB Streams can be used to aggregate data by using an AWS Lambda function to process the stream records and perform the necessary calculations.
+DynamoDB streams can be used to aggregate data by using an AWS Lambda function to process the stream records and perform the necessary calculations.
 
 In this tutorial, we will follow the scenario outline in this [article](https://aws.amazon.com/blogs/database/dynamodb-streams-use-cases-and-design-patterns/).
 
@@ -22,7 +22,7 @@ Here is how it's going to work:
 1. Create an `InvoiceTransactions` table to store the invoices and their transactions
 2. Make sure to enable the DynamoDB Streams on the `InvoiceTransactions` table.
 3. Create new table `InvoiceTotal` to store the total amount for each invoice
-4. Whenever a new transaction is added to an invoice, it will be recorded by the DynamoDB Stream
+4. Whenever a new transaction is added to an invoice, it will be recorded by the DynamoDB stream
 5. A lambda will be triggered by the stream and update the `InvoiceTotal` table with the new total amount.
 
 ![Diagram of lambda function triggered by a DynamoDB stream that aggregates data and writes it to another table](/images/dynamodb-streams-aggregate/architecture.svg)
@@ -59,7 +59,7 @@ const invoiceTransactionsTable = new dynamodb.Table(
 
 <SideNote>
 
-Notice that we set the `stream` property on the table. This will enable the DynamoDB Stream on the table.
+Notice that we set the `stream` property on the table. This will enable the DynamoDB stream on the table.
 
 </SideNote>
 
@@ -130,7 +130,7 @@ The `grantStreamRead` allows for the following permissions on the table:
 - [dynamodb:GetShardIterator](https://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_streams_GetShardIterator.html)
 - [dynamodb:ListStreams](https://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_streams_ListStreams.html)
 
-The following code will make sure that the lambda is triggered by the DynamoDB Stream:
+The following code will make sure that the lambda is triggered by the DynamoDB stream:
 
 ```TypeScript
 updateInvoiceTotal.addEventSource(
@@ -188,7 +188,7 @@ export const handler: DynamoDBStreamHandler = async (event) => {
 
 We're using the TypeScript types from `@types/aws-lambda` to help us with type-safety :)
 
-Since the lambda is triggered by a DynamoDB Stream, we define the handler function as a [`DynamoDBStreamHandler`](https://github.com/DefinitelyTyped/DefinitelyTyped/blob/f11b860a1da2bd626c7af9dff8a979c2dc1a730f/types/aws-lambda/trigger/dynamodb-stream.d.ts#L4), so we can except an event of type [`DynamoDBStreamEvent`](https://github.com/DefinitelyTyped/DefinitelyTyped/blob/f11b860a1da2bd626c7af9dff8a979c2dc1a730f/types/aws-lambda/trigger/dynamodb-stream.d.ts#L44).
+Since the lambda is triggered by a DynamoDB stream, we define the handler function as a [`DynamoDBStreamHandler`](https://github.com/DefinitelyTyped/DefinitelyTyped/blob/f11b860a1da2bd626c7af9dff8a979c2dc1a730f/types/aws-lambda/trigger/dynamodb-stream.d.ts#L4), so we can except an event of type [`DynamoDBStreamEvent`](https://github.com/DefinitelyTyped/DefinitelyTyped/blob/f11b860a1da2bd626c7af9dff8a979c2dc1a730f/types/aws-lambda/trigger/dynamodb-stream.d.ts#L44).
 We loop through each record, and if there is a `NewImage` on the stream record, we update the `InvoiceTotal` table with the new amount.
 
 It's easier to [unmarshall](https://www.benoitpaul.com/blog/aws/dynamodb-streams-unmarshall/) the DynamoDB record, so we can use JavaScript objects.
@@ -238,7 +238,7 @@ As expected, the `InvoiceTotal` table contains the total amount of $400 ($100 + 
 
 ## Conclusion
 
-In conclusion, DynamoDB Streams and AWS Lambda provide a powerful combination for aggregating data in real-time.
-By using DynamoDB Streams to capture data changes and an AWS Lambda function to process those changes, developers can easily perform calculations and store aggregate data.
+In conclusion, DynamoDB streams and AWS Lambda provide a powerful combination for aggregating data in real-time.
+By using DynamoDB streams to capture data changes and an AWS Lambda function to process those changes, developers can easily perform calculations and store aggregate data.
 
 Source code available on [github](https://github.com/benoitpaul/aws-labs/tree/main/dynamodb-streams-aggregate)
