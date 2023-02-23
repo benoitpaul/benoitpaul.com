@@ -7,6 +7,7 @@ export const CATEGORIES: Category[] = [
   { name: "AWS", slug: "aws" },
   { name: "JavaScript", slug: "javascript" },
   { name: "React", slug: "react" },
+  { name: "React Native", slug: "react-native" },
 ];
 
 export const getCategoryBySlug = (categorySlug: string) => {

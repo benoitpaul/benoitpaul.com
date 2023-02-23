@@ -115,6 +115,11 @@ blockquote {
   font-size: var(--font-size-3);
 }
 
+:where(:not(pre) > code) {
+  font-size: var(--font-size-1);
+  white-space: normal;
+}
+
 @media screen and (min-width: 48em) {
   :where(h1) {
     font-size: var(--font-size-7);

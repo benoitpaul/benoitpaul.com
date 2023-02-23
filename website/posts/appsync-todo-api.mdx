@@ -111,7 +111,7 @@ Resolvers are functions that map GraphQL operations to the underlying data sourc
 
 In other words, they tell your API how to retrieve and manipulate data in your DynamoDB table.
 
-In AWS AppSync, you can define your resolver using the VTL (Velocity Template Language) syntax.
+In AWS AppSync, you can define your resolver using the [VTL (Velocity Template Language) syntax](https://docs.aws.amazon.com/appsync/latest/devguide/resolver-mapping-template-reference-programming-guide.html).
 
 ### Connect the API to the DynamoDB table with a data source
 
@@ -175,6 +175,10 @@ Notice that we assume a default `limit` of 100 if none is provided.
 
 ### Mutation addTodo
 
+The `addTodo` mutation leverages the [`dynamoDbPutItem`](https://docs.aws.amazon.com/cdk/api/v2/docs/aws-cdk-lib.aws_appsync.MappingTemplate.html#static-dynamowbrdbwbrputwbritemkey-values) method to insert an item in our DynamoDB table.
+
+It's worth mentionning that we let AppSync generate the ToDo ID by calling the `auto()` function on our partition key.
+
 ```TypeScript
 todoTableDataSource.createResolver("MutationAddToDoResolver", {
     typeName: "Mutation",
@@ -236,6 +240,48 @@ todoTableDataSource.createResolver("MutationDeleteToDoResolver", {
     `),
 });
 ```
+
+## Testing the API
+
+To test the AppSync API, log in the AWS console and go to the AppSync service.
+
+In the AppSync console, you can select your API and select Queries from the menu.
+
+You'll be presented with a GraphQL editor.
+
+Let's try to use our API.
+
+### Testing the addTodo mutation
+
+First create a Todo Item with the `addTodo` mutation:
+
+![GraphQL mutation to add a ToDo item ](/images/appsync-todo-api/addTodo-mutation.png)
+
+In my case, this mutation created a ToDo item with a particular ID.
+We'll use this ID to further explore the API.
+Notice how the ToDo is _not completed_ by default.
+
+### Testing the completeTodo mutation
+
+Next, let's complete the ToDo with the `completeTodo` mutation:
+
+![GraphQL mutation to complete a ToDo item ](/images/appsync-todo-api/completeTodo-mutation.png)
+
+The returned ToDo now has the attribute `completed` set to `true`.
+
+### Testing the todos query
+
+We've added and completed a ToDo, now let's try to fetch the list of ToDos with the `todos` query:
+
+![GraphQL query to fetch the list of ToDos](/images/appsync-todo-api/todos-query.png)
+
+This query returns the list ToDos.
+
+### Testing the deleteTodo mutation
+
+Finally, let's clean up our test by deleting the ToDo we created with the `deleteToDo` mutation:
+
+![GraphQL mutation to delete a ToDo item](/images/appsync-todo-api/deleteTodo-mutation.png)
 
 ## Conclusion
 
