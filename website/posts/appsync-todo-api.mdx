@@ -1,0 +1,250 @@
+---
+title: "Creating an API with AWS AppSync and DynamoDB: A Step-by-Step Guide"
+description: "Learn how to create a fast and scalable API using AWS AppSync and DynamoDB. This step-by-step guide will show you how to set up your API with AppSync, connect it to a DynamoDB table, define your schema, add resolvers, and test your API. Build powerful GraphQL APIs that can handle the demands of modern applications with ease.  Example in CDK."
+category: aws
+publishedDate: "2023-02-22"
+tags:
+  - aws
+  - appsync
+  - dynamodb
+  - graphql
+  - typescript
+  - cdk
+---
+
+In today's fast-paced technology landscape, building a powerful API that can handle the demands of modern applications has become a necessity.
+
+AWS [AppSync](https://docs.aws.amazon.com/appsync/latest/devguide/what-is-appsync.html) and [DynamoDB](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Introduction.html) are two powerful services from Amazon Web Services that make building APIs a breeze.
+
+With AppSync, you can develop [GraphQL](https://graphql.org/) APIs with ease, and DynamoDB provides fast and predictable performance with seamless scalability.
+
+In this step-by-step guide, we'll walk you through the process of creating a robust API using AWS AppSync and DynamoDB.
+We'll cover everything from setting up your API with AppSync to defining your schema, connecting to a DynamoDB table, adding resolvers, and testing your API.
+By the end of this guide, you'll have the knowledge and skills necessary to build powerful GraphQL APIs that can handle the demands of modern applications.
+
+So, let's dive in and get started!
+
+## Step 1: Set up the DynamoDB table
+
+We're going to create a simple ToDo application.
+
+Each ToDo will be recorded in this DynamoDB table:
+
+```TypeScript
+const todoTable = new dynamodb.Table(this, "ToDoTable", {
+    billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+    partitionKey: { name: "id", type: dynamodb.AttributeType.STRING },
+    removalPolicy: cdk.RemovalPolicy.DESTROY,
+});
+```
+
+## Step 2: Defined the GraphQL schema
+
+Once we have your DynamoDB table set up, we'll need to define the API schema.
+
+The schema defines the types of data that the API will return and the operations that it supports.
+
+We can then define your schema using the GraphQL schema language.
+
+Let's define the schema in the `schema.graphql` file:
+
+```GraphQL
+schema {
+  query: Query
+  mutation: Mutation
+}
+
+type Query {
+  todos(limit: Int, nextToken: String): ToDoPage!
+}
+
+type Mutation {
+  addTodo(newToDo: ToDoInput!): ToDo!
+  completeTodo(id: String!): ToDo!
+  deleteTodo(id: String!): Boolean!
+}
+
+type ToDo {
+  id: ID!
+  name: String!
+  description: String!
+  completed: Boolean!
+}
+
+type ToDoPage {
+  items: [ToDo!]
+  nextToken: String
+}
+
+input ToDoInput {
+  name: String!
+  description: String!
+}
+```
+
+## Step 3: Create the AWS AppSync API
+
+With the schema defined, we can now create the AppSync API:
+
+```TypeScript
+const graphqlApi = new appsync.GraphqlApi(this, "ToDoAPI", {
+    name: "ToDo API",
+    schema: appsync.SchemaFile.fromAsset(
+        path.join(__dirname, "schema.graphql")
+    ),
+    authorizationConfig: {
+        defaultAuthorization: {
+            authorizationType: appsync.AuthorizationType.API_KEY,
+            apiKeyConfig: {
+                description: "public key for getting data",
+                expires: cdk.Expiration.after(cdk.Duration.days(30)),
+                name: "API Token",
+            },
+        },
+    }
+});
+```
+
+## Step 4: Add resolvers
+
+Resolvers are functions that map GraphQL operations to the underlying data sources.
+
+In other words, they tell your API how to retrieve and manipulate data in your DynamoDB table.
+
+In AWS AppSync, you can define your resolver using the VTL (Velocity Template Language) syntax.
+
+### Connect the API to the DynamoDB table with a data source
+
+First we need to let the API know it needs to connect the DnamoDB table with a data source:
+
+```TypeScript
+const todoTableDataSource = graphqlApi.addDynamoDbDataSource(
+    "ToDoTableDataSource",
+    todoTable
+);
+```
+
+### Query todos
+
+While querying todos could return the whole list of todos, it could quickly become inefficient if the list is large.
+
+Instead our API allows us to return a _paged_ list of todos:
+
+```GraphQL
+type Query {
+  todos(limit: Int, nextToken: String): ToDoPage!
+}
+
+type ToDoPage {
+  items: [ToDo!]
+  nextToken: String
+}
+```
+
+We just have to provide a `limit` argument as the page size, and the `nextToken` will be returned, so we can query for the next page.
+
+Here is how it is implemented:
+
+```TypeScript
+todoTableDataSource.createResolver("QueryToDosResolver", {
+    typeName: "Query",
+    fieldName: "todos",
+    requestMappingTemplate: appsync.MappingTemplate.fromString(`
+        #set( $limit = $util.defaultIfNull($context.args.limit, 100) )
+        #set( $ListRequest = {
+            "version": "2018-05-29",
+            "limit": $limit
+        } )
+        #if( $context.args.nextToken )
+            #set( $ListRequest.nextToken = $context.args.nextToken )
+        #end
+        $util.qr($ListRequest.put("operation", "Scan"))
+        $util.toJson($ListRequest)
+    `),
+    responseMappingTemplate: appsync.MappingTemplate.fromString(`
+        #if($ctx.error)
+            $util.error($ctx.error.message, $ctx.error.type)
+        #else
+            $util.toJson($ctx.result)
+        #end
+    `),
+});
+```
+
+Notice that we assume a default `limit` of 100 if none is provided.
+
+### Mutation addTodo
+
+```TypeScript
+todoTableDataSource.createResolver("MutationAddToDoResolver", {
+    typeName: "Mutation",
+    fieldName: "addTodo",
+    requestMappingTemplate: appsync.MappingTemplate.dynamoDbPutItem(
+        appsync.PrimaryKey.partition("id").auto(),
+        appsync.Values.projecting("newToDo").attribute("completed").is("false")
+    ),
+    responseMappingTemplate: appsync.MappingTemplate.dynamoDbResultItem(),
+});
+```
+
+### Mutation completeTodo
+
+```TypeScript
+todoTableDataSource.createResolver("MutationCompleteToDoResolver", {
+    typeName: "Mutation",
+    fieldName: "completeTodo",
+    requestMappingTemplate: appsync.MappingTemplate.fromString(`
+    {
+        "version": "2018-05-29",
+        "operation" : "UpdateItem",
+        "key" : {
+            "id": $util.dynamodb.toDynamoDBJson($context.arguments.id),
+        },
+        "update" : {
+            "expression": "set #completed = :completed",
+            "expressionNames": {
+            "#completed": "completed",
+            },
+            "expressionValues": {
+            ":completed": $util.dynamodb.toDynamoDBJson(true),
+            }
+        },
+        "condition": {
+        "expression": "attribute_exists(id)"
+        }
+    }`),
+    responseMappingTemplate: appsync.MappingTemplate.dynamoDbResultItem(),
+});
+```
+
+### Mutation deleteTodo
+
+```TypeScript
+todoTableDataSource.createResolver("MutationDeleteToDoResolver", {
+    typeName: "Mutation",
+    fieldName: "deleteTodo",
+    requestMappingTemplate: appsync.MappingTemplate.dynamoDbDeleteItem(
+        "id",
+        "id"
+    ),
+    responseMappingTemplate: appsync.MappingTemplate.fromString(`
+        #if($ctx.error)
+            $util.error($ctx.error.message, $ctx.error.type)
+        #else
+            true
+        #end
+    `),
+});
+```
+
+## Conclusion
+
+Creating a fast and scalable API is critical for any modern application, and AWS AppSync and DynamoDB make this process simple and efficient.
+
+By following the step-by-step guide outlined in this article, you can quickly set up a powerful API that can handle the demands of your application.
+
+With AppSync handling the heavy lifting of securely connecting to data sources and DynamoDB providing fast and predictable performance with seamless scalability, you can easily build robust GraphQL APIs that can handle the demands of modern applications.
+
+So, whether you're building a mobile app, a web app, or a desktop application, AWS AppSync and DynamoDB are powerful tools that can help you create an API that will meet your needs.
+
+Source code available on [github](https://github.com/benoitpaul/aws-labs/tree/main/appsync-todo-api).
