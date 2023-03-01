@@ -16,31 +16,39 @@
 .image {
   display: flex;
   justify-content: center;
-  margin: var;
 }
 
-.blogPost table {
+/* 
+  BlogPost Content
+*/
+
+.blogPost .content {
+  display: grid;
+  gap: var(--size-4);
+}
+
+.blogPost .content table {
   border-collapse: collapse;
   border-spacing: 0;
 }
 
-.blogPost table tr:nth-child(2n) {
+.blogPost .content table tr:nth-child(2n) {
   background-color: rgba(var(--gray-3), 0.2);
 }
 
-.blogPost table th,
-.blogPost table td {
+.blogPost .content table th,
+.blogPost .content table td {
   padding: var(--size-2) var(--size-3);
   border: solid 1px var(--gray-3);
 }
 
-.blogPost ul,
-.blogPost ol {
+.blogPost .content ul,
+.blogPost .content ol {
   padding-inline-start: var(--size-3);
 }
 
-.blogPost ul li,
-.blogPost ol li {
+.blogPost .content ul li,
+.blogPost .content ol li {
   line-height: 1.5;
   max-inline-size: unset;
   margin-bottom: var(--size-2);

@@ -15,6 +15,7 @@ import { MDXRemote } from "next-mdx-remote";
 import BlogPostHead from "./BlogPostHead";
 
 import styles from "./BlogPost.module.css";
+import Breadcrumb from "@components/Breadcrumb";
 
 interface BlogPostProps {
   post: Post;
@@ -51,15 +52,23 @@ const BlogPost = ({ post }: BlogPostProps) => {
     incrementArticleHitCount(post.slug);
   }, [post.slug]);
 
+  const breadcrumbList = [
+    { name: "Blog", url: "/blog/" },
+    { name: post.categoryName, url: `/blog/${post.category}` },
+  ];
+
   return (
     <article className={styles.blogPost}>
       <header>
-        <Link href={`/blog/${post.category}`}>{post.categoryName}</Link>
+        <Breadcrumb breadcrumbList={breadcrumbList} />
+        {/* <Link href={`/blog/${post.category}`}>{post.categoryName}</Link> */}
         <h1>{post.title}</h1>
         <BlogPostHead post={post} hits={statistics?.hits} />
       </header>
 
-      <MDXRemote {...post.mdxContent} components={components} />
+      <section className={styles.content}>
+        <MDXRemote {...post.mdxContent} components={components} />
+      </section>
     </article>
   );
 };
