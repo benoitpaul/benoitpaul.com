@@ -11,6 +11,7 @@ import remarkEmoji from "remark-emoji";
 import remarkGfm from "remark-gfm";
 
 import { getCategoryName } from "./category.helper";
+import { getHeadings, TableOfContentsHeadings } from "./toc.helper";
 
 const LATEST_POSTS_COUNT = 3;
 
@@ -34,6 +35,7 @@ export interface Post extends PostFrontmatter {
   readingTimeText: string;
   readingTimeMinutes: number;
   mdxContent: any;
+  tableOfContents: TableOfContentsHeadings;
 }
 
 export const getPosts = async (params?: getPostsParams): Promise<Post[]> => {
@@ -87,6 +89,7 @@ export const getPost = async (postSlug: string): Promise<Post> => {
     categoryName: getCategoryName((data as PostFrontmatter).category),
     readingTimeText: readingTime(content).text,
     readingTimeMinutes: readingTime(content).minutes,
+    tableOfContents: getHeadings(content),
     mdxContent: mdxSource,
   };
 };

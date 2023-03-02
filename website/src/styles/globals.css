@@ -118,6 +118,7 @@ blockquote {
 :where(:not(pre) > code) {
   font-size: var(--font-size-1);
   white-space: normal;
+  overflow-wrap: anywhere;
 }
 
 @media screen and (min-width: 48em) {

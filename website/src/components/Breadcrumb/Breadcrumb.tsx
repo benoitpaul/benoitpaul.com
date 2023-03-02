@@ -1,7 +1,7 @@
-import React, { ReactNode } from "react";
+import React from "react";
 import Link from "next/link";
 
-import BreadcrumbJsonLd from "./BreadcrumbJsonLd";
+import BreadcrumbSchema from "./BreadcrumbSchema";
 import { BreadcrumbList } from "./types";
 
 interface BreadcrumbProps {
@@ -13,7 +13,7 @@ import styles from "./Breadcrumb.module.css";
 const Breadcrumb = ({ breadcrumbList }: BreadcrumbProps) => {
   return (
     <>
-      <BreadcrumbJsonLd breadcrumbList={breadcrumbList} />
+      <BreadcrumbSchema breadcrumbList={breadcrumbList} />
       <ol className={styles.breadcrumb}>
         {breadcrumbList.map((item) => (
           <li key={item.url}>

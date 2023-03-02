@@ -1,0 +1,46 @@
+.tableOfContents {
+  background-color: var(--surface-2);
+  padding: var(--size-3);
+}
+
+.tableOfContents h2 {
+  text-transform: uppercase;
+  font-size: var(--font-size-2);
+}
+
+.tableOfContents ol {
+  margin: 0;
+  padding: 0;
+  list-style-type: none;
+  display: flex;
+  flex-direction: column;
+}
+
+.tableOfContents ol li {
+  padding-top: var(--size-2);
+  font-size: var(--font-size-1);
+}
+
+.tableOfContents ol li.level1 {
+  padding-left: 0;
+}
+
+.tableOfContents ol li.level2 {
+  padding-left: 0;
+}
+
+.tableOfContents ol li.level3 {
+  padding-left: var(--size-3);
+}
+
+.tableOfContents ol li.level4 {
+  padding-left: var(--size-7);
+}
+
+.tableOfContents ol li.level5 {
+  padding-left: var(--size-8);
+}
+
+.tableOfContents ol li.level6 {
+  padding-left: var(--size-9);
+}

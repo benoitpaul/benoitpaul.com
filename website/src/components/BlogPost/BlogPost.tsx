@@ -1,21 +1,23 @@
 import { useEffect } from "react";
 import Image from "next/image";
-import Link from "next/link";
 
 import {
   getArticleStatistics,
   incrementArticleHitCount,
 } from "@api/statistics";
+import Breadcrumb from "@components/Breadcrumb";
 import SideNote from "@components/SideNote";
+import TableOfContents from "@components/TableOfContents";
 import { Post } from "@helpers/post.helper";
 
 import { useQuery } from "@tanstack/react-query";
+import { parseISO } from "date-fns";
 import { MDXRemote } from "next-mdx-remote";
 
 import BlogPostHead from "./BlogPostHead";
+import BlogPostingSchema from "./BlogPostingSchema";
 
 import styles from "./BlogPost.module.css";
-import Breadcrumb from "@components/Breadcrumb";
 
 interface BlogPostProps {
   post: Post;
@@ -59,12 +61,20 @@ const BlogPost = ({ post }: BlogPostProps) => {
 
   return (
     <article className={styles.blogPost}>
+      <BlogPostingSchema
+        headline={post.title}
+        datePublished={parseISO(post.publishedDate)}
+        author={{
+          name: "Benoit Paul",
+          url: "https://www.benoitpaul.com/about/",
+        }}
+      />
       <header>
         <Breadcrumb breadcrumbList={breadcrumbList} />
-        {/* <Link href={`/blog/${post.category}`}>{post.categoryName}</Link> */}
         <h1>{post.title}</h1>
         <BlogPostHead post={post} hits={statistics?.hits} />
       </header>
+      <TableOfContents headings={post.tableOfContents} />
 
       <section className={styles.content}>
         <MDXRemote {...post.mdxContent} components={components} />

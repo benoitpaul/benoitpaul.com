@@ -2,11 +2,11 @@ import React from "react";
 
 import { BreadcrumbList } from "./types";
 
-interface BreadcrumbJsonLdProps {
+interface BreadcrumbSchemaProps {
   breadcrumbList: BreadcrumbList;
 }
 
-const BreadcrumbJsonLd = ({ breadcrumbList }: BreadcrumbJsonLdProps) => {
+const BreadcrumbSchema = ({ breadcrumbList }: BreadcrumbSchemaProps) => {
   const content = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
@@ -23,7 +23,7 @@ const BreadcrumbJsonLd = ({ breadcrumbList }: BreadcrumbJsonLdProps) => {
   return (
     <>
       <script
-        id="breadcrumb"
+        id="breadcrumb-schema"
         type="application/ld+json"
         dangerouslySetInnerHTML={{
           __html: JSON.stringify(content, null, "\t"),
@@ -33,4 +33,4 @@ const BreadcrumbJsonLd = ({ breadcrumbList }: BreadcrumbJsonLdProps) => {
   );
 };
 
-export default BreadcrumbJsonLd;
+export default BreadcrumbSchema;
