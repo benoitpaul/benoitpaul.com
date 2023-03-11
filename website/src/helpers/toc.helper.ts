@@ -8,8 +8,6 @@ export interface TableOfContentsHeading {
 
 export type TableOfContentsHeadings = TableOfContentsHeading[];
 
-const slugger = new GithubSlugger();
-
 const isHeading = (mdxLine: string) => {
   const trimmed = mdxLine.trim();
   return (
@@ -22,12 +20,12 @@ const isHeading = (mdxLine: string) => {
 };
 
 export const getHeadings = (mdxContent: string): TableOfContentsHeadings => {
+  const slugger = new GithubSlugger();
   const headingLines = mdxContent.split("\n").filter(isHeading);
   return headingLines.map((line) => {
     const depth = line.split(" ", 1)[0].length; // count number of "#"
     const title = line.slice(depth).trim(); // extract the characters after all the "#"
     const slug = slugger.slug(title); // same slugger as rehypeSlug
-
     return {
       depth,
       title,

@@ -12,7 +12,6 @@ type MyDocumentProps = {
 };
 
 function MyDocument({ isProduction }: MyDocumentProps) {
-  console.log("document", { isProduction });
   return (
     <Html lang="en">
       <Head />
