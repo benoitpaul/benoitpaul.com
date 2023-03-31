@@ -6,7 +6,7 @@ export interface Category {
 export const CATEGORIES: Category[] = [
   { name: "AWS", slug: "aws" },
   { name: "JavaScript", slug: "javascript" },
-  { name: "React", slug: "react" },
+  { name: "Next.js", slug: "nextjs" },
   { name: "React Native", slug: "react-native" },
 ];
 
