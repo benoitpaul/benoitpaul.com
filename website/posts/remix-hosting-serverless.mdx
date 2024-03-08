@@ -1,0 +1,335 @@
+---
+title: "Hosting a Remix Application on AWS with CDK"
+description: "Learn how to deploy your Remix application on Amazon Web Services (AWS) using the Cloud Development Kit (CDK). Follow step-by-step instructions to provision infrastructure, configure DNS, and enable SSL for a secure and scalable hosting solution"
+category: aws
+publishedDate: "2024-03-08"
+tags:
+  - aws
+  - remix
+  - cdk
+  - typescript
+  - lambda
+  - api-gateway
+  - s3
+  - cloudfront
+---
+
+Embarking on the journey of deploying a Remix application often leads developers to consider the vast landscape of hosting solutions.
+
+While Amazon Web Services (AWS) offers a plethora of architectural options, we're here to advocate for a smarter, more efficient approach: leveraging the power of AWS with the Cloud Development Kit (CDK).
+
+In this comprehensive guide, we'll dive into the intricacies of deploying a Remix application on AWS, not through traditional means, but through the elegant abstraction provided by CDK.
+
+This innovative approach streamlines the deployment process, empowering developers to harness AWS's capabilities seamlessly while maintaining infrastructure as code.
+
+Let's explore how to marry the prowess of Remix with the agility of CDK to architect a robust and scalable hosting solution.
+
+## Creating the initial project
+
+For this particular tutorial , we'll use the `pnpm` package manager.
+
+Let's create repo with 2 projects:
+
+- the remix demo application
+- the CDK infrastruture
+
+```bash
+
+mkdir packages
+cd packages
+pnpx create-remix@latest
+# accept all default options
+mkdir infrastructure
+cd insfrastructure
+pnpx aws-cdk@latest init language=typescript
+```
+
+## The demo Remix application
+
+The remix application is super simple: it'll just allow the user to view [pokemon](https://pokeapi.co/) weights, with the routes:
+
+- `/pokemon` to list the pokemon
+- `/pokemon/{pokemon name}` to view a particular pokemon weight
+
+```typescript
+// routes/pokemon.tsx
+import { json } from "@remix-run/node";
+import { Link, Outlet, useLoaderData } from "@remix-run/react";
+import { getPokemonList } from "~/services/pokemon.server";
+
+export const loader = async () => {
+  const pokemonList = await getPokemonList();
+  return json({ pokemonList });
+};
+
+export default function PokemonPage() {
+  const { pokemonList } = useLoaderData<typeof loader>();
+  return (
+    <div>
+      <h1>Pokemon List</h1>
+      <ul>
+        {pokemonList.results.map((pokemon) => (
+          <li key={pokemon.name}>
+            <Link to={`/pokemon/${pokemon.name}`}>{pokemon.name}</Link>
+          </li>
+        ))}
+      </ul>
+      <Outlet />
+    </div>
+  );
+}
+```
+
+```typescript
+// routes/pokemon.$name.tsx
+import { json, type LoaderFunctionArgs } from "@remix-run/node";
+import { useLoaderData } from "@remix-run/react";
+
+import { getPokemonByName } from "~/services/pokemon.server";
+
+export const loader = async ({ params }: LoaderFunctionArgs) => {
+  const details = await getPokemonByName(params.name!);
+  return json({ details });
+};
+
+export default function PokemonDetailsPage() {
+  const { details } = useLoaderData<typeof loader>();
+  return (
+    <div>
+      <h2>{details.name}</h2>
+      <div>Weight: {details.weight}</div>
+    </div>
+  );
+}
+```
+
+### Build setup for serverless
+
+In order to get a serverless build, we need to tweak the [`remix.config.js`](https://remix.run/docs/en/main/file-conventions/remix-config) file:
+
+```typescript {6,8-9} showLineNumbers
+// remix.config.js
+/** @type {import('@remix-run/dev').AppConfig} \*/
+export default process.env.NODE_ENV === "production"
+  ? {
+      ignoredRouteFiles: ["**/._", "**/_.css", "**/*.test.{js,jsx,ts,tsx}"],
+      server: "./server.ts",
+      assetsBuildDirectory: "public/build",
+      serverBuildPath: "server/index.js",
+      publicPath: "/_static/build/",
+    }
+  : {
+      ignoredRouteFiles: ["**/*.css"],
+    };
+```
+
+The following points are important for this configuration:
+
+- We use different configurations, depending on whether the build is meant for production or development
+- We define a `server` option, this is important, so we have a server entrypoint to be executed by the lambda.
+- The `publicPath` is set to `_static/build/`. This is the path the browser will use to find assets.
+
+Since we have a different configuration for production build, we can add a new script to the Remix project package.json
+
+```json
+"scripts": {
+    "build": "remix build",
+    "build:prod": "export NODE_ENV=production; pnpm build",
+  },
+```
+
+[Remix has a server request handler for AWS](https://remix.run/docs/en/main/other-api/adapter#createrequesthandler), so we'll use that:
+
+```typescript
+// server.ts
+import { createRequestHandler } from "@remix-run/architect";
+import * as build from "@remix-run/dev/server-build";
+
+export const handler = createRequestHandler({
+  build: build,
+  mode: process.env.NODE_ENV,
+});
+```
+
+## Onto the infrastructure!
+
+Here is the architecture of this tutorial:
+
+![Diagram of the architecture of a remix application hosted serverless on AWS](/images/remix-hosting-serverless/architecture.svg)
+
+### Storing static assets in an S3 bucket
+
+First, let's create the S3 bucket that will store the public assets:
+
+```typescript
+const remixBucket = new s3.Bucket(this, "StaticBucket", {
+  publicReadAccess: false,
+  blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
+  removalPolicy: cdk.RemovalPolicy.DESTROY,
+  autoDeleteObjects: true,
+});
+```
+
+### Hosting the server in a lambda and API Gateway
+
+In order to execute the server in AWS, we'll create a lambda and expose it via an API Gateway.
+
+Let's create a construct for that:
+
+```typescript
+// remix-server.ts
+import * as apigatewayv2 from "@aws-cdk/aws-apigatewayv2-alpha";
+import * as apigatewayv2_integrations from "@aws-cdk/aws-apigatewayv2-integrations-alpha";
+import * as cdk from "aws-cdk-lib";
+import * as lambda from "aws-cdk-lib/aws-lambda";
+import * as lambda_nodejs from "aws-cdk-lib/aws-lambda-nodejs";
+import * as logs from "aws-cdk-lib/aws-logs";
+
+import { Stack } from "aws-cdk-lib";
+import { Construct } from "constructs";
+
+interface RemixServerProps {
+  server: string;
+}
+
+export class RemixServer extends Construct {
+  public readonly apiUrl: string;
+
+  constructor(scope: Construct, id: string, props: RemixServerProps) {
+    super(scope, id);
+
+    const lambdaNodejsFn = new lambda_nodejs.NodejsFunction(
+      this,
+      "RemixLambda",
+      {
+        runtime: lambda.Runtime.NODEJS_18_X,
+        entry: props.server,
+        bundling: {
+          nodeModules: ["@remix-run/architect"],
+        },
+        timeout: cdk.Duration.seconds(10),
+        logRetention: logs.RetentionDays.THREE_DAYS,
+      }
+    );
+
+    const lambdaIntegration =
+      new apigatewayv2_integrations.HttpLambdaIntegration(
+        "LambdaIntegration",
+        lambdaNodejsFn
+      );
+
+    const httpApi = new apigatewayv2.HttpApi(this, "RemixApi", {
+      apiName: scope.node.id,
+      defaultIntegration: lambdaIntegration,
+    });
+
+    this.apiUrl = `${httpApi.httpApiId}.execute-api.${Stack.of(this).region}.${
+      Stack.of(this).urlSuffix
+    }`;
+  }
+}
+```
+
+### Cloudfront Distribution
+
+The cloudfront will have 2 origins:
+
+- One origin to serve any calls to the `_static/` routes (S3 bucket)
+- One origin to server any other route: the Remix server
+
+Let's create a construct for that as well:
+
+```typescript
+// remix-distribution.ts
+import * as cloudfront from "aws-cdk-lib/aws-cloudfront";
+import * as cloudfront_origins from "aws-cdk-lib/aws-cloudfront-origins";
+import * as s3 from "aws-cdk-lib/aws-s3";
+
+import { Construct } from "constructs";
+
+interface RemixDistributionProps {
+  bucket: s3.IBucket;
+  serverApiUrl: string;
+}
+
+export class RemixDistribution extends Construct {
+  public readonly distribution: cloudfront.Distribution;
+  constructor(scope: Construct, id: string, props: RemixDistributionProps) {
+    super(scope, id);
+
+    const bucketOriginAccessIdentity = new cloudfront.OriginAccessIdentity(
+      this,
+      "BucketOriginAccessIdentity"
+    );
+    props.bucket.grantRead(bucketOriginAccessIdentity);
+
+    this.distribution = new cloudfront.Distribution(this, "Distribution", {
+      // certificate: TODO
+      // domainNames: TODO
+      // httpVersion: HttpVersion.HTTP2_AND_3,
+      enableLogging: false,
+      defaultBehavior: {
+        allowedMethods: cloudfront.AllowedMethods.ALLOW_ALL,
+        cachePolicy: cloudfront.CachePolicy.CACHING_DISABLED,
+        compress: true,
+        origin: new cloudfront_origins.HttpOrigin(props.serverApiUrl),
+        originRequestPolicy:
+          cloudfront.OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
+        viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+      },
+      // Static assets are retrieved from the /_static path.
+      additionalBehaviors: {
+        "_static/*": {
+          allowedMethods: cloudfront.AllowedMethods.ALLOW_GET_HEAD,
+          cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED,
+          compress: true,
+          origin: new cloudfront_origins.S3Origin(props.bucket, {
+            originAccessIdentity: bucketOriginAccessIdentity,
+          }),
+          viewerProtocolPolicy:
+            cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+        },
+      },
+    });
+  }
+}
+```
+
+### Bucket Deployment
+
+The finishing touch to our infrastructure is to deploy the public assets in the bucket, and invalidate the cloudfront distribution:
+
+```typescript
+new s3_deployment.BucketDeployment(this, "RemixBucketDeployment", {
+  sources: [s3_deployment.Source.asset(props.publicDir)],
+  destinationBucket: remixBucket,
+  destinationKeyPrefix: "_static",
+  distribution: remixDistribution.distribution,
+});
+```
+
+### Deploying the app and infrastructure
+
+To deploy the project in our AWS account, we just need to run these commands:
+
+```bash
+# build the remix application
+pnpm --filter my-remix-app build:prod
+pnpx --filter infrastructure aws-cdk deploy
+```
+
+## Conclusion
+
+In this guide, we've explored how to host a Remix application on AWS using CDK.
+
+By leveraging CDK, we can define our infrastructure as code and automate the deployment process, making it easier to manage and scale our applications.
+
+With AWS services like Cloudfront, S3, Lambda, and API Gateway, we can create a reliable and scalable hosting environment for our Remix applications.
+
+By following the steps outlined in this guide, you can deploy your Remix application to AWS with confidence, knowing that it's secure, performant, and ready to delight your users.
+
+Code for this article is available here: [https://github.com/benoitpaul/remix-hosting-serverless-aws](https://github.com/benoitpaul/remix-hosting-serverless-aws)
+
+```
+
+```
