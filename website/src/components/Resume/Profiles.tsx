@@ -12,27 +12,19 @@ const Profiles = ({ profiles }: ProfilesProps) => {
   return (
     <section className={styles.profiles}>
       <h2 className="sr">Profiles</h2>
-      <dl>
+      <ul className="nobullet">
         {profiles.map((profile, index) => (
-          <div key={index}>
-            <dt>
+          <li key={index}>
+            <a href={profile.url}>
               {profile.network?.toLowerCase() === "linkedin" ? (
                 <RiLinkedinBoxLine title={profile.network} />
               ) : (
                 <RiGithubLine title={profile.network} />
               )}
-              {/* <Icon 
-                    name={`carbon:logo-${profile.network.toLowerCase()}`}
-                    title={profile.network}
-                    width="24"
-                 /> */}
-            </dt>
-            <dd>
-              <a href={profile.url}>{profile.url}</a>
-            </dd>
-          </div>
+            </a>
+          </li>
         ))}
-      </dl>
+      </ul>
     </section>
   );
 };

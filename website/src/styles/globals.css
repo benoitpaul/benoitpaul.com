@@ -2,7 +2,7 @@
 @import "open-props/normalize";
 
 :root {
-  --max-width: 65ch;
+  --max-width: 780px /*65ch*/;
 
   --link-visited: var(--link);
   --brand-light: var(--indigo-7);
@@ -47,8 +47,8 @@ html,
 body {
   padding: 0;
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen,
-    Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
+  font-family: Nunito, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto,
+    Oxygen, Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
 }
 
 /* a {
@@ -89,11 +89,16 @@ blockquote {
   max-inline-size: unset;
 }
 
+:where(p, ul, ol, dl, h6) {
+  font-size: var(--font-size-3);
+}
+
 :where(a):where([href]):where(:visited) {
   text-decoration-color: var(--link);
 }
 
 :where(h1, h2, h3, h4, h5, h6) {
+  font-family: "Lora", serif;
   font-weight: var(--font-weight-7);
 }
 

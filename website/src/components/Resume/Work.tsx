@@ -10,7 +10,7 @@ const Work = ({ work }: WorkProps) => {
   return (
     <section>
       <h2>Experience</h2>
-      <ul className="nobullet">
+      <ul className={styles.experiences}>
         {work.map((experience, index) => (
           <li key={index}>
             <section className={styles.experience}>
@@ -21,7 +21,7 @@ const Work = ({ work }: WorkProps) => {
                 <a href={experience.url}>{experience.name}</a>
               </span>
               <span className={styles.experience_date}>
-                {experience.startDate} - {experience.endDate}
+                {experience.startDate} to {experience.endDate}
               </span>
               <span className={styles.experience_summary}>
                 {experience.summary}
