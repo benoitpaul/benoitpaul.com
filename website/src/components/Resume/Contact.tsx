@@ -12,20 +12,28 @@ const Contact = ({ basics }: ContactProps) => {
     <section className={styles.contact}>
       <h2 className="sr">Contact</h2>
       <dl>
-        <dt>address</dt>
-        <dd>
-          <address>
-            <p>{location.address}</p>
-            <p>
-              {location.city} {location.postalCode}
-            </p>
-            <p>{location.region}</p>
-          </address>
-        </dd>
-        <dt>phone</dt>
-        <dd>
-          <a href={`tel:${phone}`}>{phone}</a>
-        </dd>
+        {location && (
+          <>
+            <dt>address</dt>
+            <dd>
+              <address>
+                <p>{location.address}</p>
+                <p>
+                  {location.city} {location.postalCode}
+                </p>
+                <p>{location.region}</p>
+              </address>
+            </dd>
+          </>
+        )}
+        {phone && (
+          <>
+            <dt>phone</dt>
+            <dd>
+              <a href={`tel:${phone}`}>{phone}</a>
+            </dd>
+          </>
+        )}
         <dt>email</dt>
         <dd>
           <a href={`mailto:${email}`}>{email}</a>

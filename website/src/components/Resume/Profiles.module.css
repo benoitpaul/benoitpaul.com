@@ -1,11 +1,9 @@
-.profiles dl {
+.profiles ul {
   display: flex;
-  flex-direction: column;
-  gap: var(--size-2);
+  gap: var(--size-5);
 }
 
-.profiles dl div {
-  display: flex;
-  align-items: center;
-  gap: var(--size-2);
+.profiles ul li svg {
+  width: 2rem;
+  height: 2rem;
 }

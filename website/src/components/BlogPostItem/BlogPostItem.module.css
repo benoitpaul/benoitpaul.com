@@ -2,7 +2,7 @@
   text-decoration: none;
   display: flex;
   flex-direction: column;
-  gap: var(--size-1);
+  gap: var(--size-2);
 }
 
 .blogPostItem p {
@@ -25,9 +25,11 @@
 
 .blogPostItem header h3 {
   flex: 1;
-  font-size: var(--font-size-2);
+  font-size: var(--font-size-3);
   font-weight: var(--font-weight-6);
   line-height: var(--font-lineheight-2);
+
+  max-inline-size: unset;
 }
 
 .blogPostItem header time {
